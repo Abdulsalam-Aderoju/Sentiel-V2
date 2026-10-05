@@ -1,0 +1,101 @@
+# Maps source export identifiers to Sentinel's internal fields.
+# To pilot on a real state's exports, edit this file only: replace the UIDs
+# below with the state's DHIS2 data element / data set UIDs and the NHLMIS
+# column names with those in the state's LMIS export.
+
+dhis2:
+  # DHIS2 default category option combo; real exports use this UID when a data
+  # element has no disaggregation.
+  default_category_option_combo: HllvX50cXC0
+
+  # Monthly data set that facilities are expected to report each month.
+  dataset:
+    uid: RkY5nTq8mQ2
+    name: "NHMIS Monthly Summary (PHC)"
+
+  # value_type: number | boolean. key: counts towards field completeness.
+  data_elements:
+    - uid: fbfJHSPpUQD
+      name: "OPD attendance - total"
+      field: opd
+      value_type: number
+      key: true
+    - uid: vU9Qm2pLk7A
+      name: "Malaria - confirmed (RDT or microscopy)"
+      field: confirmed_malaria
+      value_type: number
+      key: true
+    - uid: cYeuwXTCPkU
+      name: "ANC 1st visit"
+      field: anc1
+      value_type: number
+      key: true
+    - uid: hfdmMSPBgLG
+      name: "Deliveries - total"
+      field: deliveries
+      value_type: number
+      key: true
+    - uid: x4Xn8Rk2BzP
+      name: "Penta 1 doses given (0-11m)"
+      field: penta1
+      value_type: number
+      key: true
+    - uid: Jt7nQ3sYd9E
+      name: "Penta 3 doses given (0-11m)"
+      field: penta3
+      value_type: number
+      key: true
+    - uid: pK2sL8vNw4R
+      name: "RI sessions planned (fixed + outreach)"
+      field: sessions_planned
+      value_type: number
+      key: true
+    - uid: mW5rT1yHc6F
+      name: "RI sessions conducted (fixed + outreach)"
+      field: sessions_conducted
+      value_type: number
+      key: true
+    - uid: qZ8dE3gVb1N
+      name: "Vaccine stockout during month (any antigen)"
+      field: vaccine_stockout_flag
+      value_type: boolean
+      key: true
+    - uid: gR4hU9iOj2M
+      name: "Penta vaccine stock balance end of month (doses)"
+      field: vaccine_stock_balance
+      value_type: number
+      key: true
+    - uid: tB6nY0aSx3K
+      name: "Vaccine refrigerator functional"
+      field: refrigerator_functional
+      value_type: boolean
+      key: true
+
+nhlmis:
+  # Column names in the NHLMIS bimonthly facility report export -> internal fields.
+  columns:
+    facility_code: facility_code
+    reporting_period_start: period_start
+    reporting_period_end: period_end
+    product_code: commodity_code
+    beginning_balance: opening_balance
+    quantity_received: quantity_received
+    quantity_dispensed: quantity_consumed
+    losses_adjustments: losses_adjustments
+    physical_count: physical_stock
+    days_out_of_stock: days_out_of_stock
+    adjusted_consumption: adjusted_consumption
+    amc: amc
+    quantity_required: quantity_to_order
+    date_submitted: submission_date
+
+  products:
+    ACT_AL_ADULT:
+      name: "Artemether-Lumefantrine 20/120mg, 6x4 (adult)"
+      unit: pack
+    ACT_AL_CHILD:
+      name: "Artemether-Lumefantrine 20/120mg, 6x2 (child)"
+      unit: pack
+    RDT_MAL:
+      name: "Malaria RDT kit"
+      unit: test

@@ -1,0 +1,68 @@
+# PHC Sentinel settings. Every threshold the engines use lives here.
+# Each entry notes its basis: POLICY (published policy), WHO-DQR (WHO data quality
+# review method), STAT (statistical convention) or DESIGN (design judgement,
+# sensitivity-tested). See docs/assumptions.md.
+
+state: Bauchi
+
+calendar:
+  first_period: "2023-10"          # first simulated month
+  last_period: "2026-09"           # latest analysis month
+  # Analysis for month M runs this many days after M ends. Reports submitted
+  # later are invisible at analysis time (point-in-time correctness).
+  analysis_lag_days: 30            # DESIGN
+
+reporting:
+  dhis2_deadline_days: 15          # DESIGN: days after period end for an on-time monthly report
+  nhlmis_deadline_days: 15         # DESIGN: days after bimonthly period end
+  nhlmis_cycle_months: 2           # POLICY: bimonthly LMIS cycle [10]
+  silence_consecutive_missing: 2   # DESIGN: proposal §7.2
+  reliable_history_window: 12      # DESIGN
+  reliable_history_min_reports: 10 # DESIGN: 10 of previous 12
+
+dqr:
+  missing_fields_major_pct: 20     # WHO-DQR: above this share of key fields missing -> major
+  outlier_robust_z: 3.5            # STAT: Iglewicz-Hoaglin modified z-score cut-off
+  extreme_value_ratio: 4.0         # DESIGN: value >= ratio x historical median -> implausible
+  extreme_min_median: 5            # ignore ratio test for very small volumes
+  repeated_value_run: 3            # DESIGN: identical non-zero value N months running
+  level_shift_ratio: 2.5           # DESIGN: recent 3-month median vs prior 6-month median
+  stock_identity_tolerance: 0      # units of tolerated mismatch in the stock-flow identity
+  penta3_over_penta1_ratio: 1.0    # WHO-DQR coherence: Penta3 should not exceed Penta1
+
+service_pressure:
+  indicators: [opd, confirmed_malaria]
+  min_history_months: 6            # STAT: below this, no z-score is computed
+  history_window_months: 12
+  watch_z: 2.0                     # STAT, proposal §7.3
+  high_z: 3.5                      # STAT, proposal §7.3
+  mad_floor_fraction: 0.10         # MAD floor as a fraction of the median, avoids divide-by-zero
+  # A High pressure signal is a proxy, not a shortage. When true, pressure on its
+  # own is capped at Watch unless another domain is at Watch or worse.
+  requires_corroboration: true     # DESIGN
+
+commodity:
+  products: [ACT_AL_ADULT, ACT_AL_CHILD, RDT_MAL]
+  min_months: 2                    # POLICY: two-month facility minimum [10]; below it -> Watch
+  # Stock is counted at review time, when it is at its lowest, so a healthy
+  # min-max system sits near the minimum. Below the emergency order point -> High.
+  eop_months: 1                    # POLICY-ALIGNED: emergency order point; confirm against [10] in Phase 0
+  max_months: 4                    # POLICY: four-month facility maximum [10]
+  watch_upper_months: 3            # DESIGN: 2-3 MoS with rising demand -> Watch
+  amc_periods: 3                   # number of bimonthly periods averaged for AMC
+  rising_demand_z: 2.0             # confirmed malaria z at or above this = rising demand
+
+vaccine:
+  sessions_watch_ratio: 0.75       # DESIGN, proposal §7.5
+  dropout_rise_points: 15          # DESIGN: Penta1->Penta3 dropout up this many points vs baseline
+
+decision:
+  severities: [NORMAL, WATCH, HIGH, CRITICAL]
+
+simulator:
+  seed: 20261005
+  history_months: 36
+  scenario_share_deteriorating: 0.02   # share of facilities given a planted stockout
+  scenario_share_silent_before: 0.01   # reliable facilities that go silent before a stockout
+  # A3 (labelled assumption): strain raises the chance of a missed report.
+  strain_silence_multiplier: 1.5
