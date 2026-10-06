@@ -23,7 +23,9 @@ DOMAIN_LABEL = {"malaria_commodity": "Malaria commodities", "vaccine_cold_chain"
 
 def classify_confidence(spine: pd.DataFrame, flags: pd.DataFrame) -> pd.DataFrame:
     """High / Moderate / Low with plain-language reasons (proposal §7.7)."""
-    f = flags.assign(o=flags["severity"].map(SEVERITY_ORDER)).sort_values("o", ascending=False)
+    # Most informative reason first: silence, then stale commodity evidence, then the rest by severity.
+    pri = {"SIL_SILENT": 0, "FRESH_NHLMIS_STALE": 1, "COMP_MISSING_REPORT": 2}
+    f = flags.assign(o=flags["severity"].map(SEVERITY_ORDER), p=flags["rule_id"].map(pri).fillna(9))         .sort_values(["o", "p"], ascending=[False, True])
     agg = f.groupby("facility_id").agg(
         worst=("o", "max"), n_severe=("o", lambda x: int((x == 2).sum())),
         reasons=("explanation", list), reason_severity=("severity", list))

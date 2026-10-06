@@ -42,7 +42,8 @@ def service_pressure(mv: MonthView, z: pd.DataFrame) -> pd.DataFrame:
             ev.append([{"text": f"Insufficient history for a baseline ({int(row['n_hist'] or 0)} months)"}])
         else:
             base = "seasonal baseline" if row["seasonal"] else "rolling median (no prior-year data for this month)"
-            ev.append([{"text": f"{row['indicator'].replace('_', ' ').capitalize()} {row['value']:,.0f} vs expected "
+            label = {"opd": "OPD attendance", "confirmed_malaria": "Confirmed malaria"}.get(row["indicator"], row["indicator"])
+            ev.append([{"text": f"{label} {row['value']:,.0f} vs expected "
                                 f"{row['expected']:,.0f} ({base}); robust z {row['z']:+.1f}",
                         "indicator": row["indicator"], "value": row["value"], "expected": row["expected"],
                         "z": round(float(row["z"]), 2)}])
@@ -84,7 +85,7 @@ def commodity(mv: MonthView, z: pd.DataFrame) -> pd.DataFrame:
         if not r["has_record"]:
             return {"text": f"No {PRODUCT_LABEL[r['commodity_code']]} report on record", "commodity": r["commodity_code"]}
         mos_txt = "no recorded consumption" if pd.isna(r["mos"]) else ("ample (no consumption)" if np.isinf(r["mos"]) else f"{r['mos']:.1f} months of stock")
-        parts = [f"{PRODUCT_LABEL[r['commodity_code']]}: {r['physical_stock']:,.0f} in stock, AMC {r['amc']:,.0f} -> {mos_txt}"]
+        parts = [f"{PRODUCT_LABEL[r['commodity_code']]}: {r['physical_stock']:,.0f} in stock, AMC {r['amc']:,.0f}, so {mos_txt}"]
         if r["days_out_of_stock"] > 0:
             parts.append(f"{int(r['days_out_of_stock'])} stockout days in the period")
         if r["corroborated"]:

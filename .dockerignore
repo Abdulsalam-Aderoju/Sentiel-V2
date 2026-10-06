@@ -1,0 +1,9 @@
+.venv
+.git
+web
+data/exports
+data/eval
+data/marts
+data/staging
+data/logs
+**/__pycache__
