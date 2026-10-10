@@ -17,3 +17,6 @@ node_modules/
 .next/
 .env
 *.tsbuildinfo
+
+# Access rasters (Workstream A); regenerate with `python -m sentinel fetch-access`
+data/raw/access/

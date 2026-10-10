@@ -9,6 +9,8 @@
     python -m sentinel national      state- and national-level marts (all states)
     python -m sentinel load-db       load staging + marts into PostgreSQL/PostGIS
     python -m sentinel all           facilities -> simulate -> pipeline per state, then national marts
+    python -m sentinel fetch-access  download WorldPop, MAP friction and GRID3 wards (not committed)
+    python -m sentinel access        access and travel-burden marts per state, then national roll-up
 """
 from __future__ import annotations
 
@@ -62,7 +64,8 @@ def main(argv: list[str] | None = None) -> None:
     p = argparse.ArgumentParser(prog="python -m sentinel", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("command", nargs="?", default="all",
-                   choices=["coverage", "fetch-grid3", "facilities", "simulate", "pipeline", "national", "load-db", "all"])
+                   choices=["coverage", "fetch-grid3", "facilities", "simulate", "pipeline", "national", "load-db", "all",
+                            "fetch-access", "access"])
     p.add_argument("--state", action="append", help="state code (repeatable); default: all configured states")
     p.add_argument("--workers", type=int, default=int(os.environ.get("SENTINEL_WORKERS", 3)))
     a = p.parse_args(argv)
@@ -81,6 +84,16 @@ def main(argv: list[str] | None = None) -> None:
         fetch_states_geo()
     elif a.command in ("facilities", "simulate", "pipeline"):
         _parallel(_state_step, [(a.command, c) for c in codes], a.workers)
+    elif a.command == "fetch-access":
+        from .access.fetch import fetch_national, fetch_wards
+        fetch_national()
+        for c in codes:
+            fetch_wards(c)
+    elif a.command == "access":
+        # Importable worker (not a __main__ function) so the spawn-based pool can pickle it.
+        from .access.compute import build_national, run
+        _parallel(run, [(c,) for c in codes], a.workers)
+        build_national()
     elif a.command == "national":
         from .national import build
         build()
