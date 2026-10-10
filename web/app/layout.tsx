@@ -1,31 +1,29 @@
-import type { Metadata } from "next";
-import Link from "next/link";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 export const metadata: Metadata = {
-  title: "PHC Sentinel",
-  description: "See risk before it becomes a shortage: operational risk x data confidence for Bauchi State PHCs.",
+  title: { default: "PHC Sentinel", template: "%s · PHC Sentinel" },
+  description: "See risk before it becomes a shortage: operational risk x data confidence for primary health care in 12 Nigerian states.",
 };
 
+export const viewport: Viewport = { width: "device-width", initialScale: 1 };
+
+/** The simulated-data banner sits in the root layout, so it is on every page:
+ * landing, national map, state briefs, briefing mode, state portals and facility pages. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <div className="banner" role="note">
-          Demonstration: facility list and boundaries are real (GRID3). All operational reporting data are{" "}
-          <strong>simulated</strong> and do not describe actual Bauchi facilities.
+        <div className="banner" role="note" aria-label="Data notice">
+          <span className="chip">All operational data simulated</span>
+          <span className="long">
+            Facility lists and boundaries are real (GRID3 v3.0). Reporting, stock and service figures are{" "}
+            <strong>simulated</strong> and do not describe actual facilities.
+          </span>
+          <span className="short">Facility lists are real (GRID3); all figures are simulated.</span>
         </div>
-        <header className="topbar">
-          <Link href="/" className="logo" style={{ textDecoration: "none" }}>
-            PHC Sentinel<span>Bauchi State PHCDA</span>
-          </Link>
-          <nav>
-            <Link href="/">State overview</Link>
-            <Link href="/about">Method &amp; data</Link>
-          </nav>
-        </header>
-        <main>{children}</main>
+        {children}
       </body>
     </html>
   );

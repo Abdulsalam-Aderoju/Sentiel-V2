@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import LgaMap from "@/components/LgaMap";
 import MonthPicker from "@/components/MonthPicker";
 import { ConfBadge, QueueTag } from "@/components/Tags";
-import { DOMAIN_LABEL, api, monthLabel, pct } from "@/lib/api";
+import { DOMAIN_LABEL, api, apiOrNull, facilityHref, lgaHref, monthLabel, pct, stateHref } from "@/lib/api";
 
 const TABS = [
   ["action", "Resource action"],
@@ -20,28 +22,41 @@ function age(r: any) {
   return parts.join(" · ");
 }
 
-export default async function LgaQueues({ params, searchParams }: {
-  params: Promise<{ id: string }>; searchParams: Promise<{ month?: string; tab?: string }>;
-}) {
-  const { id } = await params;
+type P = { params: Promise<{ code: string; id: string }>; searchParams: Promise<{ month?: string; tab?: string }> };
+
+export async function generateMetadata({ params }: P): Promise<Metadata> {
+  const { code, id } = await params;
+  const d = await apiOrNull(`/state/${code}/lga/${id}/queue`);
+  return { title: d ? `${d.lga.lga} LGA queues · ${d.state.name}` : "LGA not found" };
+}
+
+export default async function LgaQueues({ params, searchParams }: P) {
+  const { code, id } = await params;
   const { month: m, tab = "action" } = await searchParams;
   const meta = await api("/meta/months");
   const month = m ?? meta.latest;
-  const [d, lgaGeo, facGeo] = await Promise.all([
-    api(`/lga/${id}/queue`, month), api("/geo/lgas", month), api(`/geo/facilities?lga_id=${id}`, month),
+  const d = await apiOrNull(`/state/${code}/lga/${id}/queue`, month);
+  if (!d) notFound();
+  const [lgaGeo, facGeo] = await Promise.all([
+    api(`/state/${code}/geo/lgas`, month), api(`/state/${code}/geo/facilities`, month, { lga_id: id }),
   ]);
   const l = d.lga;
+  const st = d.state;
   const rows: any[] = d[tab] ?? d.action;
 
   return (
     <>
       <div className="page-head">
         <div>
-          <div className="crumbs"><Link href={`/?month=${month}`}>Bauchi State</Link> / {l.lga} LGA · {monthLabel(month)}</div>
+          <div className="crumbs">
+            <Link href={`/national?month=${month}`}>National</Link><span className="sep">/</span>
+            <Link href={stateHref(code, month)}>{st.name} State</Link><span className="sep">/</span>
+            <span>{l.lga} LGA · {monthLabel(month)}</span>
+          </div>
           <h1>{l.lga} LGA queues</h1>
           <div className="secondary">
             {l.facilities} PHCs · reporting {pct(l.reporting_completeness)} complete, {pct(l.on_time_rate)} on time ·
-            ranked #{l.lga_rank} of 20 LGAs
+            ranked #{l.lga_rank} of {d.lgas_in_state} LGAs in {st.name}
           </div>
         </div>
         <MonthPicker months={meta.months} value={month} />
@@ -59,7 +74,7 @@ export default async function LgaQueues({ params, searchParams }: {
         <div className="card">
           <div className="tabs">
             {TABS.map(([k, label]) => (
-              <Link key={k} className={tab === k ? "active" : ""} href={`/lga/${id}?month=${month}&tab=${k}`}>
+              <Link key={k} className={tab === k ? "active" : ""} href={`${lgaHref(code, id, month)}&tab=${k}`} scroll={false}>
                 {label} ({(d[k] ?? []).length})
               </Link>
             ))}
@@ -81,8 +96,9 @@ export default async function LgaQueues({ params, searchParams }: {
                     <tr key={r.facility_id}>
                       <td className="muted num">{r.rank_lga}</td>
                       <td style={{ minWidth: 180 }}>
-                        <Link href={`/facility/${r.facility_id}?month=${month}`}>{r.name}</Link>
+                        <Link href={facilityHref(code, r.facility_id, month)}>{r.name}</Link>
                         <div className="muted" style={{ fontSize: 12 }}>{r.ward}</div>
+                        {r.coord_status === "location_unverified" && <div className="pill" style={{ marginTop: 4, display: "inline-block" }} title="GRID3 coordinates are more than 5 km from this LGA; kept in the queue, not drawn on the map">Location unverified</div>}
                       </td>
                       <td style={{ minWidth: 150 }}>
                         <QueueTag tag={r.tag} />
@@ -105,7 +121,7 @@ export default async function LgaQueues({ params, searchParams }: {
         </div>
         <div className="card" style={{ alignSelf: "start" }}>
           <h2>Facilities</h2>
-          <LgaMap lgas={lgaGeo} facilities={facGeo} month={month} focusLga={id} />
+          <LgaMap lgas={lgaGeo} facilities={facGeo} month={month} focusLga={id} stateCode={code} />
         </div>
       </div>
     </>

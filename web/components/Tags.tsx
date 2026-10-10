@@ -1,4 +1,4 @@
-import { CONF_COLOR, SEV_COLOR, TAG_STYLE } from "@/lib/api";
+import { CONF_COLOR, SEV_COLOR, STATUS_STYLE, TAG_STYLE } from "@/lib/api";
 
 export function QueueTag({ tag }: { tag: string }) {
   const s = TAG_STYLE[tag] ?? { color: "var(--st-neutral)", label: tag, icon: "•" };
@@ -27,4 +27,20 @@ export function ConfBadge({ conf }: { conf: string }) {
       {conf.charAt(0) + conf.slice(1).toLowerCase()} confidence
     </span>
   );
+}
+
+/** State status for the national view: icon + text on a soft tint, never colour alone. */
+export function StatusPill({ status, size }: { status: string; size?: "lg" }) {
+  const s = STATUS_STYLE[status] ?? { label: status, icon: "•", color: "var(--st-neutral)", soft: "var(--surface-2)", long: "" };
+  return (
+    <span className="status-pill" title={s.long}
+      style={{ background: s.soft, border: `1px solid color-mix(in srgb, ${s.color} 45%, transparent)`, ...(size === "lg" ? { fontSize: 14, padding: "4px 12px" } : {}) }}>
+      <span aria-hidden className="ico" style={{ color: s.color }}>{s.icon}</span>
+      {s.label}
+    </span>
+  );
+}
+
+export function SimChip({ text = "Simulated data" }: { text?: string }) {
+  return <span className="sim-chip" title="All operational reporting data are simulated"><span aria-hidden>⚠</span>{text}</span>;
 }

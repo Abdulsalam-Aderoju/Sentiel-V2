@@ -1,19 +1,29 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { CommodityChart, ServiceChart } from "@/components/Charts";
 import MonthPicker from "@/components/MonthPicker";
-import { ConfBadge, QueueTag, SevBadge } from "@/components/Tags";
-import { QUEUE_LABEL, api, monthLabel } from "@/lib/api";
+import { ConfBadge, QueueTag, SevBadge, SimChip } from "@/components/Tags";
+import { QUEUE_LABEL, api, apiOrNull, lgaHref, monthLabel, stateHref } from "@/lib/api";
 
 const SEV_ORDER: Record<string, number> = { severe: 0, major: 1, minor: 2 };
 
-export default async function FacilityExplanation({ params, searchParams }: {
-  params: Promise<{ id: string }>; searchParams: Promise<{ month?: string }>;
-}) {
-  const { id } = await params;
+type P = { params: Promise<{ code: string; id: string }>; searchParams: Promise<{ month?: string }> };
+
+export async function generateMetadata({ params }: P): Promise<Metadata> {
+  const { code, id } = await params;
+  const d = await apiOrNull(`/state/${code}/facility/${id}`);
+  return { title: d ? `${d.facility.name} · ${d.state.name}` : "Facility not found" };
+}
+
+export default async function FacilityExplanation({ params, searchParams }: P) {
+  const { code, id } = await params;
   const { month: m } = await searchParams;
   const meta = await api("/meta/months");
   const month = m ?? meta.latest;
-  const [d, qd, cfg] = await Promise.all([api(`/facility/${id}`, month), api(`/quality/${id}`, month), api("/meta/settings")]);
+  const d = await apiOrNull(`/state/${code}/facility/${id}`, month);
+  if (!d) notFound();
+  const [qd, cfg] = await Promise.all([api(`/state/${code}/quality/${id}`, month), api("/meta/settings")]);
   const f = d.facility, s = d.status, ex = d.explanation;
   const reasons: string[] = ex.confidence_reasons ?? [];
   const checks = [...(qd.checks ?? [])].sort((a: any, b: any) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity]);
@@ -23,12 +33,16 @@ export default async function FacilityExplanation({ params, searchParams }: {
       <div className="page-head">
         <div>
           <div className="crumbs">
-            <Link href={`/?month=${month}`}>Bauchi State</Link> / <Link href={`/lga/${f.lga_id}?month=${month}`}>{f.lga} LGA</Link> / {f.ward}
+            <Link href={`/national?month=${month}`}>National</Link><span className="sep">/</span>
+            <Link href={stateHref(code, month)}>{d.state.name} State</Link><span className="sep">/</span>
+            <Link href={lgaHref(code, f.lga_id, month)}>{f.lga} LGA</Link><span className="sep">/</span><span>{f.ward}</span>
           </div>
           <h1>{f.name}</h1>
           <div className="secondary">
             {f.facility_type || "Primary health facility"} · {f.ownership_type || "public"} · GRID3 {f.facility_id}
-            {f.coord_status === "invalid" && " · coordinates flagged invalid in GRID3"}
+            {f.coord_status === "near_boundary" && ` · Near boundary: ${Math.round(f.dist_to_lga_m / 100) / 10} km outside its LGA polygon`}
+            {f.coord_status === "location_unverified" && ` · Location unverified: GRID3 point ${Math.round(f.dist_to_lga_m / 1000)} km from its LGA (kept in queues, not mapped)`}
+            {" "}<SimChip />
           </div>
         </div>
         <MonthPicker months={meta.months} value={month} />
@@ -44,7 +58,7 @@ export default async function FacilityExplanation({ params, searchParams }: {
           <div className="secondary" style={{ fontSize: 12 }}>Queue</div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "6px 0 12px", flexWrap: "wrap" }}>
             <strong>{QUEUE_LABEL[s.queue]}</strong> <QueueTag tag={s.tag} />
-            <span className="muted">#{s.rank_lga} in {f.lga} · #{s.rank_state} in state</span>
+            <span className="muted">#{s.rank_lga} in {f.lga} · #{s.rank_state} in {d.state.name}</span>
           </div>
           <div className="action-box">{s.next_action}</div>
         </div>
