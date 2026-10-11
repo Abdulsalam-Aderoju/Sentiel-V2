@@ -12,8 +12,12 @@ data/staging/
 data/logs/
 data/states/
 data/national/
+data/actions/
 
 node_modules/
 .next/
 .env
 *.tsbuildinfo
+
+# Local agent worktrees
+.claude/

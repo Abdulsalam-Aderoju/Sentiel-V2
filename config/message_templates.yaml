@@ -12,7 +12,7 @@ templates:
     expects: [ACT, RDT, FRIDGE]
     sms: "Sentinel (DEMO): {facility}, pls confirm stock. Reply: ACT <qty> RDT <qty> FRIDGE <1/0>. Ref {case_ref}"
     whatsapp: "Sentinel (DEMO) - stock check for {facility}, {lga} LGA.\nPlease reply with today's physical count:\nACT <packs> RDT <tests> FRIDGE <1 working / 0 not working>\nExample: ACT 40 RDT 120 FRIDGE 1\nRef {case_ref}"
-    email: "Subject: Stock check {case_ref} - {facility}\n\nDear colleague,\n\nPlease confirm today's physical stock of ACTs and malaria RDTs at {facility} ({lga} LGA), and whether the vaccine refrigerator is working.\nReply in one line: ACT <packs> RDT <tests> FRIDGE <1/0>.\n\nThis is a PHC Sentinel demonstration message. Ref {case_ref}."
+    email: "Subject: Sentinel (DEMO) stock check {case_ref} - {facility}\n\nDear colleague,\n\nPlease confirm today's physical stock of ACTs and malaria RDTs at {facility} ({lga} LGA), and whether the vaccine refrigerator is working.\nReply in one line: ACT <packs> RDT <tests> FRIDGE <1/0>.\n\nThis is a PHC Sentinel demonstration message. Ref {case_ref}."
   T_STOCK_REMINDER:
     purpose: Reminder for an unanswered stock check
     expects: [ACT, RDT, FRIDGE]
@@ -57,7 +57,7 @@ templates:
     purpose: National request for a state response
     expects: []
     sms: "Sentinel (DEMO): NPHCDA requests a {state} State response plan on PHC action and verification by {due}. Ref {case_ref}"
-    email: "Subject: Request for a state response {case_ref}\n\nThe national PHC Sentinel review flags {state} State. Please acknowledge, name a response lead and submit a short response plan by {due}.\n\nThis is a PHC Sentinel demonstration message."
+    email: "Subject: Sentinel (DEMO) request for a state response {case_ref}\n\nThe national PHC Sentinel review flags {state} State. Please acknowledge, name a response lead and submit a short response plan by {due}.\n\nThis is a PHC Sentinel demonstration message."
   T_CASE_NOTICE:
     purpose: Notify a person that a case was opened (bundled into the daily digest unless P1)
     expects: []

@@ -22,6 +22,14 @@
 | A17 | Facilities more than 5 km outside their own LGA polygon cannot be placed reliably on a map | **Design assumption** (boundary simplification and GRID3 geocoding precision) | `geography.near_boundary_km`; D11 |
 | A18 | A state is "High action load" at >= 17% of PHCs in ACT NOW and has an "Evidence gap" at >= 36% in Data Verification | **Design assumption**, set near the middle of the simulated state range; a pilot would set them with state M&E teams | `national.status`; D15 |
 | A19 | Ogun, Abia, Delta and Bayelsa stand in for Lagos, Anambra, Rivers and Cross River | GRID3 Health Facilities v3.0 coverage (Step-1 check, 10 Oct 2026) | D9 |
+| A20 | Officer responsiveness varies by LGA and by person: Beta(6, 2.5) LGA means, person concentration 12, 5% never reply | **Simulator parameter**, labelled synthetic | `directory.responsiveness` |
+| A21 | Replies arrive after a mean 1.5 days (max 6), longer for less responsive people; 3% of deliveries fail | **Simulator parameter** | `simulation.reply_delay_days`, `delivery_failure_rate` |
+| A22 | Reported counts are truth ± 10%; 8% of replies are messily formatted and 3% unparseable | **Simulator parameter**, so the parser and the review queue are exercised | `simulation.reply_noise`, `typo_rate`, `unparseable_rate` |
+| A23 | Approved resupply arrives in 3–7 days; a promised report is ingested 1–3 days after REPORT SENT; only 10% of truly silenced facilities recover a report on request | **Simulator parameter** | `simulation.*` |
+| A24 | A vaccine resupply requests twice the month's Penta doses given (minimum 20); commodity resupply uses NHLMIS quantity_to_order when current, else AMC × 4 months minus last stock | **Design assumption**; a pilot uses the state cold-chain officer's allocation | `service.resupply_rows` |
+| A25 | Simulated officers acknowledge open cases with probability 0.55 per day, scaled by responsiveness | **Simulator parameter**; approvals are never simulated | `simulation.ack_probability_per_day` |
+| A26 | The directory has 2 staff per PHC, 5 officers per LGA, 6 per state and 3 national roles; names are first name × surname from zone pools, phones `SIM-{ST}-{6 digits}`, emails on `.invalid` | **Design assumption**; no real office-holder is named | `config/name_pools.yaml`, `directory.py` |
+| A27 | Ground truth for simulated replies is the September closing stock minus daily demand × days since, plus delivered resupply | **Simulator parameter** (from the evaluation truth tables) | `simulate.truth_stock` |
 
 ## Per-state simulator parameters (A13–A16)
 

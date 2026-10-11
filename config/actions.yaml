@@ -331,6 +331,14 @@ messaging:
 verification:
   max_age_days: 14             # a field verification older than this has no effect
   max_confidence: MODERATE     # a self-reported field count is never High confidence
+  # Severe quality rules a fresh field stock count may lift (confidence rises to at most Moderate, and only
+  # when EVERY severe reason is in this list). A missing report, silence or incoherent values are never
+  # lifted: confidence recovers only when the real report is ingested (D23).
+  liftable_rules: [FRESH_NHLMIS_STALE]
+  # Reply quantities map to NHLMIS products for months-of-stock: ACT = adult + child packs.
+  commodity_map: {ACT: [ACT_AL_ADULT, ACT_AL_CHILD], RDT: [RDT_MAL]}
+  # A Penta count at or below this many doses is a vaccine stockout (DESIGN).
+  penta_stockout_doses: 0
 
 # ---- Simulation (all labelled synthetic; A20-A25) ---------------------------------------------
 simulation:

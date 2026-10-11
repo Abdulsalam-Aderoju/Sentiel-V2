@@ -25,6 +25,25 @@ def mapping() -> dict:
     return yaml.safe_load((CONFIG_DIR / "dhis2_mapping.yaml").read_text(encoding="utf-8"))
 
 
+ACTIONS_DIR = DATA_DIR / "actions"     # action-layer build outputs (directory, initial cases)
+
+
+@lru_cache
+def actions_cfg() -> dict:
+    """config/actions.yaml: roles, rules, playbooks, ladders, messaging, simulation."""
+    return yaml.safe_load((CONFIG_DIR / "actions.yaml").read_text(encoding="utf-8"))
+
+
+@lru_cache
+def templates_cfg() -> dict:
+    return yaml.safe_load((CONFIG_DIR / "message_templates.yaml").read_text(encoding="utf-8"))
+
+
+@lru_cache
+def name_pools() -> dict:
+    return yaml.safe_load((CONFIG_DIR / "name_pools.yaml").read_text(encoding="utf-8"))
+
+
 def states() -> list[dict]:
     """Covered states in display order, each with its simulator parameters resolved."""
     s = settings()
