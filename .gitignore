@@ -21,3 +21,5 @@ node_modules/
 
 # Local agent worktrees
 .claude/
+# Access rasters (Workstream A); regenerate with `python -m sentinel fetch-access`
+data/raw/access/

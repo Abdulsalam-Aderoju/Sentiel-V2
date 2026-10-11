@@ -142,3 +142,40 @@ national:
   status:
     act_now_share_high: 0.17       # >= this share of PHCs in ACT NOW -> high action load
     verification_share_high: 0.36  # >= this share in Data Verification -> evidence gap
+
+# ==== Access and travel burden (Workstream A) ====================================
+# Real-data derived (WorldPop population, MAP friction surfaces, GRID3 facilities and
+# boundaries). Every threshold here is a DESIGN assumption (docs/assumptions.md
+# A40-A45); no policy standard has been verified. Decisions: docs/decisions.md D40+.
+access:
+  data_class: real-derived
+  working_resolution_m: 1000        # DESIGN: ~1 km cells on a per-state equal-area (LAEA) grid
+  friction_resampling: nearest      # how ~925 m MAP pixels map to working cells: average | min | nearest | med
+  buffer_km: 30                     # DESIGN: travel may route through, and reach facilities in, a 30 km ring around the state
+  # Which facilities count as a service point:
+  #   exclude_non_functional  public primary, minus those GRID3 marks Not-Functional (default;
+  #                           functional_status is "Unknown" for ~86% of facilities)
+  #   functional_only         only GRID3 "Functional"
+  #   all                     every facility in dim_facility
+  facility_filter: exclude_non_functional
+  cross_border_facilities: true     # facilities of other covered states inside the buffer are reachable
+  primary_mode: walking             # walking | motorised | distance (distance = straight-line fallback)
+  thresholds_minutes: [30, 60, 120]           # walking, DESIGN
+  thresholds_minutes_motorised: [30, 60]      # motorised, DESIGN
+  thresholds_km: [5, 10]                      # straight-line, DESIGN
+  main_threshold_minutes: 60        # DESIGN: "beyond 60 min walk" is the headline measure
+  main_threshold_km: 5              # DESIGN: headline measure when primary_mode is distance
+  candidates_per_state: 10          # candidate areas for outreach or new service points
+  candidate_min_separation_km: 10   # DESIGN: candidates are at least this far apart
+  ward_geojson_simplify_deg: 0.002  # ~200 m, for the choropleth file
+  sources:
+    population:
+      url: https://data.worldpop.org/GIS/Population/Global_2015_2030/R2025A/2026/NGA/v1/100m/constrained/nga_pop_2026_CN_100m_R2025A_v1.tif
+      year: 2026
+      product: WorldPop Global2 R2025A v1, constrained, 100 m population counts
+    friction_wcs: https://data.malariaatlas.org/geoserver/Accessibility/wcs
+    friction_walking: Accessibility__202001_Global_Walking_Only_Friction_Surface
+    friction_motorised: Accessibility__202001_Global_Motorized_Friction_Surface
+    friction_bbox: [2.0, 3.8, 15.2, 14.3]     # lon_min, lat_min, lon_max, lat_max (Nigeria + buffer)
+    wards_layer: NGA_Ward_Boundaries
+# ==== end access ================================================================

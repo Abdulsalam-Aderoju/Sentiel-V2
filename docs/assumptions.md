@@ -53,3 +53,21 @@ completeness 0.65–0.97, timeliness 0.55–0.92).
 | Abia | South East | 0.72–0.93 | 0.70–0.92 | 0.70–0.95 | 0.84–0.97 | 280 | 0.80 | forest_south | 0.81 / 0.69 / 0.80 |
 | Delta | South South | 0.74–0.94 | 0.75–0.95 | 0.70–0.95 | 0.82–0.96 | 300 | 0.85 | forest_south | 0.82 / 0.71 / 0.79 |
 | Bayelsa | South South | 0.64–0.90 | 0.66–0.90 | 0.62–0.90 | 0.78–0.94 | 260 | 0.90 | forest_south | 0.73 / 0.57 / 0.77 |
+
+## Access and travel burden, Workstream A (A40-A48)
+
+No national policy standard for travel time or distance to a PHC was opened during the build, so every threshold
+below is a **design assumption**. A commonly quoted "PHC within 5 km / 30 minutes" norm was not verified and is
+not cited.
+
+| ID | Assumption | Basis | Handling |
+|---|---|---|---|
+| A40 | Walking thresholds 30, 60 and 120 minutes | **Design assumption**, the bands used in the global travel-time literature. **NEEDS OWNER REVIEW** against the National Health Policy / Ward Minimum Health Care Package | `access.thresholds_minutes` |
+| A41 | Headline measure: people more than **60 minutes' walk** from the nearest included PHC | **Design assumption**. **NEEDS OWNER REVIEW** | `access.main_threshold_minutes` |
+| A42 | Straight-line thresholds 5 and 10 km; 5 km is the headline when travel time is unavailable | **Design assumption** | `access.thresholds_km`, `access.main_threshold_km` |
+| A43 | Motorised thresholds 30 and 60 minutes | **Design assumption**; secondary measure, assumes a vehicle is available | `access.thresholds_minutes_motorised` |
+| A44 | A facility with "Unknown" functional status is open | Most GRID3 records are Unknown (D40) | `access.facility_filter` |
+| A45 | MAP 2020 friction surfaces still describe travel in 2026 | Most recent global surface; roads built since 2020, seasonal flooding and insecurity are not represented | Source year in `mart_access_state.friction_source` |
+| A46 | People use their nearest PHC by travel time | Standard accessibility assumption; ignores cost, quality, opening hours and preference | Catchments described as geographic, not utilisation (D48) |
+| A47 | WorldPop 2026 projected counts represent current population | WorldPop R2025A projection; differs from NPC projections in some states (Ogun, FCT higher) | D41 |
+| A48 | 30 km buffer, 1 km cells, candidates 10 km apart | **Design assumption**; sensitivity of the friction resampling rule is reported in D43 | `access.*` |

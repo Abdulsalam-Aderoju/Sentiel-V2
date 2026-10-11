@@ -94,3 +94,42 @@ column), `reporting_truth.csv`, `nhlmis_reporting_truth.csv`, `truth_monthly.par
 ## Phase two (not used)
 
 General essential medicines, staffing, supplier lead time, order fill rate.
+
+## Access outputs (Workstream A)
+
+Built by `python -m sentinel fetch-access` (once) then `python -m sentinel access [--state CODE] [--workers N]`.
+Real-data derived, not simulated: every table has `data_class = 'real-derived'` (the GeoJSON carries it in
+`metadata`). Keys match the existing tables: `state_code` (settings code), `lga_id` (GRID3 `lgacode` string, as in
+`dim_facility` and `dim_lga`), `facility_id` (GRID3 `unique_id`). Decisions D40-D52, assumptions A40-A48, sources in
+`docs/data_sources.md`.
+
+Per state, in `data/states/{code}/access/`; national roll-ups in `data/national/`.
+
+| File | Grain | Contents |
+|---|---|---|
+| `mart_access_facility.parquet` | every facility in `dim_facility` | identity and location columns from `dim_facility`; `included` (passes `access.facility_filter`), `access_computed` (included and coordinates usable; false for `location_unverified`, metrics null); `catchment_pop`, `catchment_pop_beyond_main`, `catchment_mean_walk_min`, `catchment_mean_motor_min`; nearest alternative PHC `alt_facility_id`, `alt_facility_name`, `alt_state_code` (may be a neighbouring covered state), `alt_walk_min`, `alt_km` (straight line); `nearest_other_km`; `isolated` (alternative beyond the main threshold, or none); `n_colocated` (included facilities in the same 1 km cell); `primary_mode`, `main_threshold` |
+| `mart_access_ward.parquet` | GRID3 ward | `ward_code`, `ward`, `lga_id`, `lga`, `urban`, access measures (below), `n_facilities` (computed facilities inside the ward polygon), `hotspot_rank` (1 = most people beyond the main threshold) |
+| `mart_access_lga.parquet` | LGA | `lga_id`, `lga`, access measures, `n_facilities`, `n_wards`, `rank_pop_beyond_main` |
+| `mart_access_state.parquet` | one row | `state`, `zone`, access measures; `pop_outside_wards`, `pop_nearest_out_of_state_facility`, `pop_unreachable`; `n_facilities_total`, `n_facilities_included`, `n_facilities_computed`, `n_facilities_location_unverified`, `n_isolated`, `n_lgas`, `n_wards`; `primary_mode`, `main_threshold`, `main_threshold_unit`, `facility_filter`, `population_source`, `population_year`, `friction_source`, `resolution_m` |
+| `access_candidates.parquet` | up to 10 per state | `rank`, `longitude`, `latitude` (1 km cell centre), `cell_population`, `score_pop_x_burden`, `walk_min`, `motor_min`, `dist_km_nearest`, `nearest_facility_id`, `nearest_facility_name`, `lga_id`, `lga`, `ward_code`, `ward`, `cell_size_km`, `note` ("candidate area for outreach or a new service point") |
+| `wards.geojson` | ward polygons, simplified ~200 m (40-320 KB) | properties `ward_code`, `ward`, `lga_id`, `lga`, `state_code`, `pop_total`, `pop_beyond_main`, `pct_beyond_main`, `walk_mean_min`, `walk_median_min`, `n_facilities`, `hotspot_rank` |
+| `travel_time.png` + `travel_time.json` | state overlay | walking-time classes (<= 30, 30-60, 60-120, > 120 min) as a transparent Web Mercator PNG; the JSON has `bounds` `[[south, west], [north, east]]` for a Leaflet `imageOverlay`, class labels and colours |
+| `data/national/mart_access_state.parquet` | 12 rows | the per-state rows concatenated |
+| `data/national/mart_access_zone.parquet`, `mart_access_national.parquet` | zone / one row | summed counts (`pop_*`, `sum_pop_x_*`, `n_*`), `pct_*` and `*_mean_*` recomputed from them, `n_states`, `coverage_note` (12 demo states only, not all of Nigeria). No medians |
+
+**Access measures** (ward, LGA, state; population-weighted over WorldPop 100 m population):
+
+| Column | Meaning |
+|---|---|
+| `pop_total` | population (WorldPop 2026) |
+| `walk_mean_min`, `walk_median_min` | walking minutes to the nearest included facility |
+| `motor_mean_min`, `motor_median_min` | motorised minutes |
+| `dist_mean_km`, `dist_median_km` | straight-line km to the nearest included facility |
+| `pop_beyond_{30,60,120}min_walk`, `pct_beyond_...` | people (and %) with walking time strictly above the threshold |
+| `pop_beyond_{30,60}min_motor`, `pct_beyond_...` | same, motorised |
+| `pop_beyond_{5,10}km`, `pct_beyond_...` | same, straight-line distance |
+| `pop_beyond_main`, `pct_beyond_main` | headline measure: beyond `access.main_threshold_minutes` (60) in `primary_mode` (walking), or `main_threshold_km` in the distance fallback |
+| `sum_pop_x_{walk,motor}_min`, `sum_pop_x_dist_km`, `pop_{walk,motor,dist}_finite` | sums that let any grouping recompute a weighted mean: mean = sum_pop_x / pop_finite |
+
+Rules: exactly at a threshold counts as within (D47). Medians are quantised by the 1 km grid (one orthogonal step
+is 12 min walking at 5 km/h), so many medians read 12.0. Logs: `data/states/{code}/logs/access.json`.
