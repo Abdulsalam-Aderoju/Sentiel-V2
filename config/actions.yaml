@@ -221,6 +221,9 @@ rules:
                  {field: catchment_population, op: ge, value: 10000}]}
     raise_priority: 1
     note: "Isolated facility: about {catchment_population:,.0f} people; next PHC {alt_minutes:.0f} min walk"
+    note_if_missing: {alt_minutes: "Isolated facility: about {catchment_population:,.0f} people; no other PHC reachable on foot"}
+    # Thresholds: isolated = next PHC beyond the 60-min walking threshold (access.main_threshold_minutes);
+    # 10,000 people is DESIGN (A28): about the top quarter of isolated catchments.
   - id: R12_burden_exhausted
     description: "Do-not-assume-safe facility whose implied stock is likely exhausted: raise priority one level"
     level: facility

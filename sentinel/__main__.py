@@ -102,6 +102,11 @@ def main(argv: list[str] | None = None) -> None:
         from .access.compute import build_national, run
         _parallel(run, [(c,) for c in codes], a.workers)
         build_national()
+        try:
+            from .db import load_access_only
+            load_access_only()
+        except Exception as e:  # noqa: BLE001 - the marts are still on disk; load-db picks them up later
+            print(f"  access marts not loaded into the database ({type(e).__name__}); run load-db later")
     elif a.command == "national":
         from .national import build
         build()

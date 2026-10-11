@@ -15,6 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from ..config import mapping, settings, states
+from . import access as access_api
 from . import actions as actions_api
 from . import cases as cases_api
 from .common import months, one, q, resolve_month, state_info
@@ -24,6 +25,7 @@ app = FastAPI(title="PHC Sentinel API", version="0.2.0",
                           "roll-up. Facility list and boundaries are real (GRID3); all operational data are SIMULATED.")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST"], allow_headers=["*"])
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.include_router(access_api.router)
 app.include_router(actions_api.router)
 app.include_router(cases_api.router)
 
@@ -39,6 +41,7 @@ METRICS = {
     "pct_verification": ("% in Data Verification", True),
     "reporting_completeness": ("Reporting completeness", False),
     "pct_stale": ("% stale stock reports", True),
+    "pct_pop_beyond_threshold": ("% people beyond a 60-min walk to a PHC", True),
 }
 
 
@@ -95,6 +98,13 @@ def _national_summary(m: str) -> dict:
     zones.sort(key=lambda z: order.get(z["zone"], 99))
     trend = q("""SELECT analysis_month, act_now, verify_then_act, verification, monitor, facilities,
                         reporting_completeness, pct_stale FROM mart_national_month ORDER BY analysis_month""")
+    acc = access_api.one("SELECT pct_beyond_main, pop_beyond_main, pop_total FROM mart_access_national") if access_api.available() else None
+    if acc:
+        nat = {**nat, "pct_pop_beyond_threshold": acc["pct_beyond_main"], "pop_beyond_threshold": acc["pop_beyond_main"],
+               "access_pop_total": acc["pop_total"]}
+        za = {z["zone"]: z for z in access_api.q("SELECT zone, pct_beyond_main, pop_beyond_main FROM mart_access_zone")}
+        for z in zones:
+            z["pct_pop_beyond_threshold"] = za.get(z["zone"], {}).get("pct_beyond_main")
     return {"month": m, "banner": BANNER, "kpis": nat, "zones": zones, "trend": trend,
             "metrics": {k: {"label": v[0], "higher_is_worse": v[1]} for k, v in METRICS.items()}}
 
@@ -119,7 +129,9 @@ def _national_states(m: str, metric: str) -> dict:
             m=m, n=settings()["national"]["top_lgas_in_brief"])
     worse = METRICS[metric][1]
     order = {st["code"]: i for i, st in enumerate(states())}
+    acc = access_api.state_metric_rows()
     for r in rows:
+        r.update(acc.get(r["state_code"], {"pct_pop_beyond_threshold": None}))
         r["value"] = r[metric]
         r["trend"] = [t for t in tr if t["state_code"] == r["state_code"]]
         r["top_lgas"] = [t for t in top if t["state_code"] == r["state_code"]]
@@ -133,7 +145,8 @@ def _national_states(m: str, metric: str) -> dict:
 
 @app.get("/national/states")
 def national_states(response: Response, month: str | None = MONTH,
-                    metric: Literal["pct_act_now", "pct_verification", "reporting_completeness", "pct_stale"] = "pct_act_now"):
+                    metric: Literal["pct_act_now", "pct_verification", "reporting_completeness", "pct_stale",
+                                    "pct_pop_beyond_threshold"] = "pct_act_now"):
     """One row per covered state: counts, rates, status, a short trend and the top LGAs (the state brief).
     `value` and `metric_rank` follow the selected map metric."""
     response.headers["Cache-Control"] = CACHE

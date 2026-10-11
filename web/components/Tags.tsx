@@ -44,3 +44,7 @@ export function StatusPill({ status, size }: { status: string; size?: "lg" }) {
 export function SimChip({ text = "Simulated data" }: { text?: string }) {
   return <span className="sim-chip" title="All operational reporting data are simulated"><span aria-hidden>⚠</span>{text}</span>;
 }
+
+export function RealChip({ text = "Real-derived data" }: { text?: string }) {
+  return <span className="real-chip" title="Derived from real open data (WorldPop, MAP, GRID3); not simulated"><span aria-hidden>◆</span>{text}</span>;
+}

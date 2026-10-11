@@ -48,8 +48,9 @@ def facility_records(conn, month: str, facility_ids: list[str] | None = None) ->
     df["vaccine_stockout"] = rr & (df["vaccine_stockout_flag"] == 1)
     df["sessions_ratio"] = (df["sessions_conducted"] / df["sessions_planned"].where(df["sessions_planned"] > 0)).where(rr)
     if _exists(conn, "mart_access_facility"):
-        acc = _read(conn, """SELECT facility_id, catchment_population, isolated AS access_isolated,
-                                    alt_minutes, alt_km, alt_facility_name FROM mart_access_facility""")
+        acc = _read(conn, """SELECT facility_id, catchment_pop AS catchment_population, isolated AS access_isolated,
+                                    alt_walk_min AS alt_minutes, alt_km, alt_facility_name
+                             FROM mart_access_facility WHERE access_computed""")
         df = df.merge(acc, on="facility_id", how="left")
     if _exists(conn, "mart_hidden_burden_facility"):
         hb = _read(conn, """SELECT facility_id, implied_stock_label FROM mart_hidden_burden_facility

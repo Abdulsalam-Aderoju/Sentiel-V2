@@ -138,7 +138,7 @@ export default function NationalCommand({ summary, states, geo, initial }: {
             </div>
           </div>
           <div className="card">
-            <div className="card-head"><div><h2>States by {m.label.toLowerCase()}</h2><p>{m.worse ? "Highest first" : "Lowest first"} · click for the brief</p></div></div>
+            <div className="card-head"><div><h2>States by {m.label.toLowerCase().replace("phc", "PHC")}</h2><p>{m.worse ? "Highest first" : "Lowest first"} · click for the brief</p></div></div>
             <ol className="rank-list">
               {ranked.map((s, i) => (
                 <li key={s.state_code}>
@@ -222,7 +222,7 @@ export default function NationalCommand({ summary, states, geo, initial }: {
             <thead>
               <tr>
                 <th>Zone</th><th>States</th><th className="n">PHCs</th><th className="n">Act now</th><th className="n">Verify then act</th>
-                <th className="n">Do not assume safe</th><th className="n">Monitor</th><th className="n">Reporting</th><th className="n">Stale stock</th><th>Status</th>
+                <th className="n">Do not assume safe</th><th className="n">Monitor</th><th className="n">Reporting</th><th className="n">Stale stock</th><th className="n">Beyond 60-min walk</th><th>Status</th>
               </tr>
             </thead>
             <tbody>
@@ -237,6 +237,7 @@ export default function NationalCommand({ summary, states, geo, initial }: {
                   <td className="n">{int(z.monitor)}</td>
                   <td className="n">{pct(z.reporting_completeness)}</td>
                   <td className="n">{pct(z.pct_stale)}</td>
+                  <td className="n">{pct(z.pct_pop_beyond_threshold, 1)}</td>
                   <td><StatusPill status={z.status} /></td>
                 </tr>
               ))}
@@ -249,6 +250,7 @@ export default function NationalCommand({ summary, states, geo, initial }: {
                 <td className="n">{int(k.monitor)}</td>
                 <td className="n">{pct(k.reporting_completeness)}</td>
                 <td className="n">{pct(k.pct_stale)}</td>
+                <td className="n">{pct(k.pct_pop_beyond_threshold, 1)}</td>
                 <td><StatusPill status={k.status} /></td>
               </tr>
             </tbody>

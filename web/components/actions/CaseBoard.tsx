@@ -23,7 +23,9 @@ export function CaseRow({ c, sel, onSel }: { c: any; sel?: boolean; onSel?: (v: 
       </td>
       <td style={{ minWidth: 190 }}>
         <strong>{c.unit_name}</strong>
-        <div className="muted" style={{ fontSize: 12 }}>{c.level === "facility" ? c.lga : c.level === "lga" ? "LGA case" : "State case"}</div>
+        <div className="muted" style={{ fontSize: 12 }}>{c.level === "facility" ? c.lga : c.level === "lga" ? "LGA case" : "State case"}
+          {c.catchment_population != null && <> · ~{Math.round(c.catchment_population / 100) * 100 >= 1000 ? `${Math.round(c.catchment_population / 1000)}k` : Math.round(c.catchment_population)} people nearest</>}
+          {c.access_isolated && <span className="iso-flag" title={c.alt_walk_min != null ? `Next PHC ${Math.round(c.alt_walk_min)} min walk` : "No other PHC reachable on foot"}> · ▲ isolated</span>}</div>
         <div style={{ marginTop: 4, display: "flex", gap: 6, flexWrap: "wrap" }}>{c.tag && <QueueTag tag={c.tag} />}<LiveDelta c={c} /></div>
       </td>
       <td style={{ minWidth: 180 }}>

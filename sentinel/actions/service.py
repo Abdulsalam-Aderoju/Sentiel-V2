@@ -302,8 +302,12 @@ def priorities_with_modifiers(df: pd.DataFrame, fired: pd.DataFrame, level: str)
             if fr["rec"] in hits and rl[fr["rule_id"]].get("group") in mod.get("applies_to_groups", []):
                 fired.at[i, "priority"] = rules_mod.raise_priority(fired.at[i, "priority"], mod["raise_priority"], order)
                 rec = df.loc[fr["rec"]].to_dict()
+                tmpl = mod.get("note", mod["description"])
+                for field, alt in (mod.get("note_if_missing") or {}).items():
+                    if pd.isna(rec.get(field)):
+                        tmpl = alt
                 try:
-                    note = mod.get("note", mod["description"]).format(**{k: (0 if pd.isna(v) else v) if isinstance(v, float) else v
+                    note = tmpl.format(**{k: (0 if pd.isna(v) else v) if isinstance(v, float) else v
                                                                          for k, v in rec.items()})
                 except (KeyError, ValueError):
                     note = mod["description"]

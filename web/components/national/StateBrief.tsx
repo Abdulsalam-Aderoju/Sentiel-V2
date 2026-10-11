@@ -69,6 +69,7 @@ export default function StateBrief({ s, month, onClose, onPrev, onNext, position
             <div><span><i aria-hidden style={{ color: TAG_STYLE["DO NOT ASSUME SAFE"].color, fontStyle: "normal", fontSize: 10 }}>?</i>Do not assume safe</span><b>{int(s.verification)}</b><em>{pct(s.pct_verification)}</em></div>
             <div><span>Reporting complete</span><b>{pct(s.reporting_completeness)}</b><em>{pct(s.on_time_rate)} on time</em></div>
             <div><span>Stale stock reports</span><b>{int(s.stale_commodity)}</b><em>{pct(s.pct_stale)} of PHCs</em></div>
+            {s.pct_pop_beyond_threshold != null && <div><span>Beyond a 60-min walk</span><b>{pct(s.pct_pop_beyond_threshold, 1)}</b><em>{(s.pop_beyond_threshold / 1e6).toFixed(2)} M people · real-derived</em></div>}
           </div>
 
           <div className="brief-sec">

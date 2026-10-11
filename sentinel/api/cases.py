@@ -124,7 +124,7 @@ def state_cases(code: str = CODE, status: str | None = None, priority: str | Non
                 q_: str | None = Query(None, alias="q"),
                 sort: str = Query("priority", pattern="^(priority|due|opened|impact)$"),
                 limit: int = Query(100, le=1000), offset: int = 0):
-    """Case board for a state. `sort=impact` orders by priority, then catchment population (access layer)."""
+    """Case board for a state. `sort=impact` orders by priority, then isolated PHCs first, then catchment population (access layer)."""
     state_info(code)
     clk = _clock()
     w, p = ["c.state_code = :s"], {"s": code, "n": limit, "o": offset}
@@ -151,12 +151,12 @@ def state_cases(code: str = CODE, status: str | None = None, priority: str | Non
     if q_:
         w.append("(f.name ILIKE :q OR c.case_ref ILIKE :q OR f.lga ILIKE :q)"); p["q"] = f"%{q_}%"
     acc = _has("mart_access_facility")
-    join = " LEFT JOIN mart_access_facility acc ON acc.facility_id = c.facility_id" if acc else ""
+    join = " LEFT JOIN mart_access_facility acc ON acc.facility_id = c.facility_id AND acc.access_computed" if acc else ""
     order = {"priority": "c.priority, c.due_at, c.case_id", "due": "c.due_at, c.priority, c.case_id",
              "opened": "c.opened_at DESC, c.case_id",
-             "impact": ("c.priority, acc.isolated DESC NULLS LAST, acc.catchment_population DESC NULLS LAST, c.case_id" if acc
+             "impact": ("c.priority, acc.isolated DESC NULLS LAST, acc.catchment_pop DESC NULLS LAST, c.case_id" if acc
                         else "c.priority, c.due_at, c.case_id")}[sort]
-    extra = ", acc.catchment_population, acc.isolated AS access_isolated" if acc else ""
+    extra = ", acc.catchment_pop AS catchment_population, acc.isolated AS access_isolated, acc.alt_walk_min" if acc else ""
     where = " AND ".join(w)
     total = one(f"SELECT count(*) n {CASE_FROM}{join} WHERE {where}", **p)["n"]
     rows = q(f"SELECT {CASE_COLS}{extra} {CASE_FROM}{join} WHERE {where} ORDER BY {order} LIMIT :n OFFSET :o", **p)

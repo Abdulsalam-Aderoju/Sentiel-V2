@@ -485,7 +485,8 @@ def run(code: str) -> str:
 
     # ---- candidate areas ------------------------------------------------------------
     score_val = (dist_km if primary == "distance" else cost[primary]).ravel()
-    score = np.where(np.isfinite(score_val), score_val, 0) * cell_pop.ravel()
+    # Only cells beyond the main threshold qualify: a dense town 12 min from a PHC is not a gap in access.
+    score = np.where(np.isfinite(score_val) & beyond(score_val, main_thr), np.where(np.isfinite(score_val), score_val, 0), 0) * cell_pop.ravel()
     order = np.argsort(-score)
     picked: list[int] = []
     sep = float(c["candidate_min_separation_km"]) * 1000

@@ -132,3 +132,31 @@
   .card { box-shadow: none; break-inside: avoid; }
 }
 .act-grid label > button, .act-note > .act-row, .act-grid label > .act-row { justify-self: start; }
+
+/* ---- Access (Workstream A, real-derived) ---- */
+.real-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px;
+  background: color-mix(in srgb, var(--series-1) 12%, var(--surface-1)); color: var(--text-primary);
+  border: 1px solid color-mix(in srgb, var(--series-1) 40%, transparent); }
+.real-chip span { color: var(--series-1); font-size: 10px; }
+.cand-num { display: inline-grid; place-items: center; width: 20px; height: 20px; font: 700 11px/1 inherit; pointer-events: none; }
+.cand-num.static { border: 2px solid var(--text-primary); border-radius: 99px; flex: none; }
+.cand-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.cand-list li { display: flex; gap: 10px; align-items: flex-start; }
+.cand-list small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+.method h2 { margin-top: 0; }
+.acc-rank li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(60px, 120px) auto; gap: 12px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.acc-rank li:last-child { border-bottom: 0; }
+.acc-rank .name { color: var(--text-primary); text-decoration: none; font-weight: 600; min-width: 0; }
+.acc-rank .name:hover { text-decoration: underline; }
+.acc-rank .name small { display: block; font-weight: 400; color: var(--text-muted); font-size: 12px; }
+.acc-rank .bar { margin-top: 0; }
+.acc-rank .v { font-weight: 700; text-align: right; min-width: 48px; }
+.table-scroll { overflow-x: auto; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px 18px; margin: 10px 0 0; }
+.facts dt { font-size: 12px; color: var(--text-secondary); }
+.facts dd { margin: 2px 0; font-size: 20px; font-weight: 700; }
+.facts dd a { font-size: 15px; }
+.facts small { color: var(--text-muted); font-size: 12px; }
+.note-box { padding: 8px 12px; border-radius: 8px; background: var(--surface-2); border-left: 4px solid var(--series-2); margin: 8px 0; font-size: 14px; }
+.note-box.warn span { color: var(--series-2); }
+.iso-flag { color: var(--text-secondary); font-weight: 600; }

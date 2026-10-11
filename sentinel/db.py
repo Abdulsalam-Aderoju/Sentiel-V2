@@ -56,6 +56,20 @@ DATA_LABELS = [
     ("mart_national_month", "derived", "National roll-up across covered states (sum of states)"),
 ]
 
+# Access and travel burden (Workstream A): real-derived from WorldPop, MAP friction surfaces and GRID3.
+ACCESS_STATE_TABLES = ["mart_access_facility", "mart_access_ward", "mart_access_lga", "access_candidates"]
+ACCESS_NATIONAL_TABLES = ["mart_access_state", "mart_access_zone", "mart_access_national"]
+ACCESS_LABELS = [
+    ("mart_access_facility", "real-derived", "Catchment population, walking time to the nearest alternative PHC, isolation"),
+    ("mart_access_ward", "real-derived", "Ward population and share beyond 30/60/120 min walking (WorldPop 2026, MAP friction)"),
+    ("mart_access_lga", "real-derived", "LGA travel burden (sum of 1 km cells)"),
+    ("mart_access_state", "real-derived", "State travel burden; covers the 12 demo states"),
+    ("mart_access_zone", "real-derived", "Zone travel burden (sum of covered states)"),
+    ("mart_access_national", "real-derived", "Travel burden across the 12 demo states (sum of states)"),
+    ("access_candidates", "real-derived", "Candidate areas for outreach or a new service point (not a siting decision)"),
+    ("access_layers", "real-derived", "Ward choropleth GeoJSON and travel-time image per state"),
+]
+
 
 def engine():
     return create_engine(os.environ.get("DATABASE_URL", DEFAULT_URL), pool_pre_ping=True)
@@ -132,6 +146,52 @@ def post_load(conn) -> None:
     """))
 
 
+def access_available() -> bool:
+    return (NATIONAL_DIR / "mart_access_national.parquet").exists()
+
+
+def load_access(conn) -> bool:
+    """Load the access marts if `python -m sentinel access` has produced them; otherwise leave them out."""
+    if not access_available():
+        print("  access marts not built; skipped (python -m sentinel fetch-access && python -m sentinel access)")
+        return False
+    for table in ACCESS_STATE_TABLES:
+        files = [(st["code"], StatePaths(st["code"]).root / "access" / f"{table}.parquet") for st in states()]
+        df = pd.concat([pd.read_parquet(f).assign(state_code=c) for c, f in files if f.exists()], ignore_index=True)
+        copy_df(conn, _prepare(df), table)
+        print(f"  {table:<24} {len(df):>10,} rows")
+    for table in ACCESS_NATIONAL_TABLES:
+        df = pd.read_parquet(NATIONAL_DIR / f"{table}.parquet")
+        copy_df(conn, _prepare(df), table)
+        print(f"  {table:<24} {len(df):>10,} rows")
+    conn.execute(text("DROP TABLE IF EXISTS access_layers"))
+    conn.execute(text("CREATE TABLE access_layers (state_code text, kind text, content text, meta jsonb, "
+                      "PRIMARY KEY (state_code, kind))"))
+    for st in states():
+        d = StatePaths(st["code"]).root / "access"
+        if (d / "wards.geojson").exists():
+            conn.execute(text("INSERT INTO access_layers VALUES (:c, 'wards', :t, '{}'::jsonb)"),
+                         {"c": st["code"], "t": (d / "wards.geojson").read_text(encoding="utf-8")})
+        if (d / "travel_time.png").exists():
+            import base64
+            meta = json.loads((d / "travel_time.json").read_text(encoding="utf-8")) if (d / "travel_time.json").exists() else {}
+            conn.execute(text("INSERT INTO access_layers VALUES (:c, 'travel_time', :t, CAST(:m AS jsonb))"),
+                         {"c": st["code"], "t": base64.b64encode((d / "travel_time.png").read_bytes()).decode(),
+                          "m": json.dumps(meta)})
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_access_fac ON mart_access_facility (facility_id)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_access_ward ON mart_access_ward (state_code, lga_id)"))
+    conn.execute(text("DELETE FROM meta_data_labels WHERE table_name = ANY(:t)"), {"t": [r[0] for r in ACCESS_LABELS]})
+    for r in ACCESS_LABELS:
+        conn.execute(text("INSERT INTO meta_data_labels (table_name, data_class, description) VALUES (:a, :b, :c)"),
+                     dict(zip("abc", r)))
+    return True
+
+
+def load_access_only() -> None:
+    with engine().begin() as conn:
+        load_access(conn)
+
+
 def load() -> None:
     t0 = time.time()
     eng = engine()
@@ -184,6 +244,7 @@ def load() -> None:
             print(f"  {table:<24} {len(df):>10,} rows")
 
         copy_df(conn, pd.DataFrame(DATA_LABELS, columns=["table_name", "data_class", "description"]), "meta_data_labels")
+        load_access(conn)
         post_load(conn)
         chk = conn.execute(text("SELECT state_code, coord_status, inside_own_lga, count(*) FROM v_facility_lga_check "
                                 "GROUP BY 1, 2, 3 ORDER BY 1, 2, 3")).fetchall()

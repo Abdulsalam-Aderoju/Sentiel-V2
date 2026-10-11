@@ -36,6 +36,25 @@ counts (`tests/test_national.py`, `tests/test_api.py`).
 
 A facility or LGA requested under the wrong state returns 404.
 
+## Access and travel burden (real-derived; Workstream A)
+
+WorldPop 2026 population, MAP 2020 walking and motorised friction, GRID3 facilities and wards. Every `pct_*`
+field is returned as a **fraction (0–1)**, like the rest of the API (the marts store percentages). 404 when the
+access marts are not loaded.
+
+| Endpoint | Returns |
+|---|---|
+| `GET /state/{code}/access` | Headline figures, every LGA ranked by people beyond the main threshold, the 15 worst wards, 10 candidate areas (cells beyond the threshold only), the 25 isolated PHCs with most people affected (with live tag), raster bounds |
+| `GET /state/{code}/access/wards.geojson` | Ward polygons (~200 m simplified); properties keep percentages (0–100) for the map |
+| `GET /state/{code}/access/travel-time.png` | Classed walking-time image, Web Mercator; bounds in `travel_time_layer` above |
+| `GET /state/{code}/access/lga/{lga_id}` | An LGA's wards and facilities |
+| `GET /state/{code}/facility/{id}/access` | Catchment, nearest alternative PHC, isolation |
+| `GET /national/access` | Sum of the 12 states, by zone and state |
+
+`/national/states?metric=pct_pop_beyond_threshold` maps the share of people beyond a 60-minute walk; `/national/summary`
+adds `pct_pop_beyond_threshold`, `pop_beyond_threshold` to the KPIs and to each zone. `/state/{code}/cases?sort=impact`
+orders by priority, then isolated PHCs first, then catchment population.
+
 ## Meta
 
 | Endpoint | Returns |

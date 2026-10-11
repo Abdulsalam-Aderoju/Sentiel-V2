@@ -67,6 +67,7 @@ export const METRICS: { key: string; label: string; short: string; worse: boolea
   { key: "pct_verification", label: "% in Data Verification", short: "Data verification", worse: true, fmt: "pct" },
   { key: "reporting_completeness", label: "Reporting completeness", short: "Reporting", worse: false, fmt: "pct" },
   { key: "pct_stale", label: "% stale stock reports", short: "Stale stock reports", worse: true, fmt: "pct" },
+  { key: "pct_pop_beyond_threshold", label: "% people beyond a 60-min walk to a PHC", short: "Beyond 60-min walk", worse: true, fmt: "pct" },
 ];
 
 export function monthLabel(m: string, long = false) {
