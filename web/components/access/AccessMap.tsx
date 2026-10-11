@@ -6,11 +6,11 @@ import { useEffect, useRef, useState } from "react";
 // Share of ward population beyond the main walking threshold (GeoJSON values are percentages, 0-100).
 // Single-hue sequential blue, light -> dark = more people far from care (same reading rule as the national map).
 const CLASSES: { min: number; label: string; color: string }[] = [
-  { min: 0, label: "< 5%", color: "#cde2fb" },
-  { min: 5, label: "5–15%", color: "#9ec5f4" },
-  { min: 15, label: "15–30%", color: "#3987e5" },
-  { min: 30, label: "30–50%", color: "#256abf" },
-  { min: 50, label: "≥ 50%", color: "#0d366b" },
+  { min: 0, label: "< 5%", color: "#dbeafe" },
+  { min: 5, label: "5–15%", color: "#93c5fd" },
+  { min: 15, label: "15–30%", color: "#3b82f6" },
+  { min: 30, label: "30–50%", color: "#1d4ed8" },
+  { min: 50, label: "≥ 50%", color: "#1e3a8a" },
 ];
 
 type Layer = "wards" | "raster";
@@ -48,8 +48,8 @@ export default function AccessMap({ code, threshold, isolated, candidates, raste
   useEffect(() => {
     if (!ref.current || !wards) return;
     const dark = window.matchMedia("(prefers-color-scheme: dark)").matches || document.documentElement.dataset.theme === "dark";
-    const surface = dark ? "#1a1a19" : "#fcfcfb";
-    const ink = dark ? "#f4f3ef" : "#1a1a19";
+    const surface = dark ? "#111a2e" : "#ffffff";
+    const ink = dark ? "#f1f5f9" : "#0f172a";
     const fill: any = ["step", ["coalesce", ["get", "pct_beyond_main"], 0], CLASSES[0].color,
       ...CLASSES.slice(1).flatMap((c) => [c.min, c.color])];
     const iso = { type: "FeatureCollection", features: isolated.filter((f) => f.longitude != null).map((f) => ({
@@ -72,7 +72,7 @@ export default function AccessMap({ code, threshold, isolated, candidates, raste
           ...(raster ? [{ id: "tt", type: "raster", source: "tt", layout: { visibility: "none" }, paint: { "raster-opacity": 0.9, "raster-resampling": "nearest" } } as any] : []),
           { id: "ward-fill", type: "fill", source: "wards", paint: { "fill-color": fill, "fill-opacity": 0.85 } },
           { id: "ward-line", type: "line", source: "wards", paint: { "line-color": surface, "line-width": 0.6 } },
-          { id: "iso", type: "circle", source: "iso", paint: { "circle-radius": 5, "circle-color": "#eb6834", "circle-stroke-color": surface, "circle-stroke-width": 1.5 } },
+          { id: "iso", type: "circle", source: "iso", paint: { "circle-radius": 5, "circle-color": "#d97706", "circle-stroke-color": surface, "circle-stroke-width": 1.5 } },
           { id: "cand", type: "circle", source: "cand", paint: { "circle-radius": 10, "circle-color": surface, "circle-stroke-color": ink, "circle-stroke-width": 2 } },
         ],
       },
@@ -144,7 +144,7 @@ export default function AccessMap({ code, threshold, isolated, candidates, raste
             {raster?.classes.map((c) => <span key={c.label} style={{ marginLeft: 6 }}><i style={{ background: c.color }} />{c.label}</span>)}
           </span>
         )}
-        <span><i style={{ background: "#eb6834", borderRadius: 99 }} />Isolated PHC (next PHC &gt; {threshold} min)</span>
+        <span><i style={{ background: "#d97706", borderRadius: 99 }} />Isolated PHC (next PHC &gt; {threshold} min)</span>
         <span><i style={{ border: "2px solid currentColor", borderRadius: 99, width: 12, height: 12 }} />Numbered candidate area</span>
       </div>
     </div>

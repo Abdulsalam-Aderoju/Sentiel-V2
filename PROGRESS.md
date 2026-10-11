@@ -2,7 +2,11 @@
 
 Branch `feat/action-access-burden`. Last updated 11 Oct 2026. **P0–P9 complete, plus the three-portal separation.**
 
-## Latest change: three separate portals
+## Latest change: Stitch UI (branch `ui/stitch-v2`)
+
+Everything below was rebuilt in the design system from the old repo's `ui/stitch-restyle` branch: sidebar shell per portal, IBM Plex Sans, slate palette, Stitch chips (indigo hatched Do not assume safe), theme toggle, restyled landing and sign-in. See D73-D75. Verified: cross-portal story, case-scope guards, no overflow at 390 px in light and dark. Not done: the slow test suite and the Docker rebuild of the API (web rebuilt).
+
+## Previous change: three separate portals
 
 The app now opens on a public landing page, then a demo sign-in sends you into one of three portals that cannot reach each other.
 

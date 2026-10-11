@@ -6,8 +6,8 @@ import { StatusPill } from "@/components/Tags";
 
 /* Sequential single-hue ramp (blue), 5 classes. Light mode: light -> dark = less -> more attention.
  * Dark mode is its own selection: dark -> light, so "more attention" is the brighter fill. */
-const RAMP_LIGHT = ["#b7d3f6", "#86b6ef", "#3987e5", "#1c5cab", "#0d366b"];   // step 150 first: stays distinct from the "Not in demo" grey
-const RAMP_DARK = ["#184f95", "#256abf", "#3987e5", "#6da7ec", "#b7d3f6"];
+const RAMP_LIGHT = ["#bfdbfe", "#93c5fd", "#3b82f6", "#1d4ed8", "#1e3a8a"];   // step 150 first: stays distinct from the "Not in demo" grey
+const RAMP_DARK = ["#1e3a8a", "#1d4ed8", "#3b82f6", "#93c5fd", "#dbeafe"];
 const NIGERIA: [number, number, number, number] = [2.67, 4.27, 14.68, 13.89];
 
 export type Bins = { edges: number[]; ramp: string[] };
@@ -102,10 +102,10 @@ export default function NationalMap({ geo, states, metric, selected, onSelect, h
   useEffect(() => {
     if (!ref.current || !ready) return;
     const css = getComputedStyle(document.documentElement);
-    const surface = css.getPropertyValue("--surface-1").trim() || "#fcfcfb";
-    const nodata = css.getPropertyValue("--nodata").trim() || "#e4e3dd";
-    const nodataLine = css.getPropertyValue("--nodata-line").trim() || "#cfcdc5";
-    const text = css.getPropertyValue("--text-primary").trim() || "#0b0b0b";
+    const surface = css.getPropertyValue("--surface-1").trim() || "#ffffff";
+    const nodata = css.getPropertyValue("--nodata").trim() || "#e2e8f0";
+    const nodataLine = css.getPropertyValue("--nodata-line").trim() || "#cbd5e1";
+    const text = css.getPropertyValue("--text-primary").trim() || "#0f172a";
     const map = new maplibregl.Map({
       container: ref.current,
       style: {

@@ -42,6 +42,8 @@ Three layers sit on top of the queues. Each carries its data class on every scre
 | **Access** | People more than a 60-minute walk from a public PHC, by ward and LGA; isolated PHCs (next PHC > 60 min) ranked by people affected; candidate areas for outreach. Isolation raises case priority. | **Real-derived**: WorldPop 2026, MAP friction surfaces, GRID3 |
 | **Behind the gaps** | Malaria cases expected at PHCs whose report is missing, with 80% ranges, and the stock-out risk behind out-of-date NHLMIS reports, each validated against the simulator's truth. | **Modelled** |
 
+The interface uses the Stitch design system (IBM Plex Sans, slate palette, sidebar shell, light / dark / system theme toggle; decision D73).
+
 ## Views: three separate portals
 
 A public landing page explains the problem and the idea, then a demo sign-in sends you into one of three portals. Each

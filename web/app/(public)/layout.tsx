@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import ThemeToggle from "@/components/ThemeToggle";
 import { portal, portalHome } from "@/lib/persona";
 
 /** Public pages (landing, sign-in, method): no portal navigation, so nobody mixes up the three portals. */
@@ -13,6 +14,7 @@ export default async function PublicLayout({ children }: { children: React.React
           <Link href="/#how" className="hide-sm">How it works</Link>
           <Link href="/#portals" className="hide-sm">The three portals</Link>
           <Link href="/about">Method &amp; data</Link>
+          <ThemeToggle />
           {p
             ? <Link className="btn primary sm" href={portalHome(p)}>Back to my portal</Link>
             : <Link className="btn primary sm" href="/signin">Enter the demo</Link>}

@@ -1,64 +1,69 @@
 import { Logo } from "@/components/Logo";
+import Icon from "@/components/Icon";
 import PortalNav, { NavLink } from "@/components/PortalNav";
 import SignOutButton from "@/components/SignOutButton";
+import ThemeToggle from "@/components/ThemeToggle";
 import type { Portal } from "@/lib/persona";
 
-const ICON = {
-  national: <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Zm-9 9h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />,
-  state: <path d="M4 20V9l8-5 8 5v11M9 20v-6h6v6" />,
-  lga: <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Zm0-8.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />,
-};
+const BADGE_ICON = { national: "home", state: "building", lga: "flag" } as const;
 
-/** The bar that tells you which of the three portals you are in. Colour, a word and an icon each say so. */
-export default function PortalBar({ portal, person, stateName, lgaName }: {
-  portal: NonNullable<Portal>; person: { name: string; role_title: string } | null; stateName?: string; lgaName?: string;
+/** The sidebar and top bar of a portal (Stitch shell). The portal's colour, word and icon say which level you are in. */
+export default function PortalShell({ portal, person, stateName, lgaName, children }: {
+  portal: NonNullable<Portal>; person: { name: string; role_title: string } | null; stateName?: string; lgaName?: string; children: React.ReactNode;
 }) {
   let cls = "p-national", badge = "National portal", scope = "All 12 states", sub = "Summaries only, no clinic detail";
   let home = "/national";
   let links: NavLink[] = [
-    { href: "/national", label: "Command Centre", exact: true },
-    { href: "/national/responses", label: "State responses" },
-    { href: "/national/briefing", label: "Briefing mode" },
+    { href: "/national", label: "Command Centre", icon: "home", exact: true },
+    { href: "/national/responses", label: "State responses", icon: "reply" },
+    { href: "/national/briefing", label: "Briefing mode", icon: "slides" },
   ];
   if (portal.kind === "state") {
     cls = "p-state"; badge = "State board portal"; scope = `${stateName ?? portal.state} State`; sub = "Your state and its LGAs";
     home = `/state/${portal.state}`;
     links = [
-      { href: home, label: "Overview", exact: true },
-      { href: `${home}/actions`, label: "Action Centre" },
-      { href: `${home}/access`, label: "Access" },
-      { href: `${home}/gaps`, label: "Behind the gaps" },
-      { href: `${home}/people`, label: "People" },
-      { href: `${home}/resupply`, label: "Resupply" },
-      { href: "/me", label: "My cases" },
+      { href: home, label: "Overview", icon: "home", exact: true },
+      { href: `${home}/actions`, label: "Action Centre", icon: "tasks", section: "Work" },
+      { href: `${home}/resupply`, label: "Resupply", icon: "box", section: "Work" },
+      { href: "/me", label: "My cases", icon: "list", section: "Work" },
+      { href: `${home}/access`, label: "Access to care", icon: "map", section: "Insight" },
+      { href: `${home}/gaps`, label: "Behind the gaps", icon: "eye", section: "Insight" },
+      { href: `${home}/people`, label: "People", icon: "users", section: "Insight" },
     ];
   } else if (portal.kind === "lga") {
     cls = "p-lga"; badge = "LGA portal"; scope = `${lgaName ?? "LGA"} LGA`; sub = `${stateName ?? portal.state} State · your clinics`;
     home = `/state/${portal.state}/lga/${portal.lga}`;
     links = [
-      { href: home, label: "Clinics", exact: true },
-      { href: `${home}/actions`, label: "Action Centre" },
-      { href: `${home}/access`, label: "Access" },
-      { href: `${home}/people`, label: "People" },
-      { href: "/me", label: "My cases" },
+      { href: home, label: "Clinics", icon: "building", exact: true },
+      { href: `${home}/actions`, label: "Action Centre", icon: "tasks" },
+      { href: `${home}/access`, label: "Access to care", icon: "map" },
+      { href: `${home}/people`, label: "People", icon: "users" },
+      { href: "/me", label: "My cases", icon: "list" },
     ];
   }
-  links = [...links, { href: "/about", label: "Method & data", exact: true }];
+  links = [...links, { href: "/about", label: "Method & data", icon: "rule", exact: true, section: portal.kind === "state" ? "About" : undefined }];
   return (
-    <header className={`portalbar ${cls}`}>
-      <div className="pb-row">
-        <Logo href={home} />
-        <span className="pb-badge">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{ICON[portal.kind]}</svg>
-          {badge}
-        </span>
-        <span className="pb-scope">{scope}<small>{sub}</small></span>
-        <div className="pb-user">
-          {person && <span className="pb-person">{person.name}<small>{person.role_title} · synthetic</small></span>}
+    <div className={`shell ${cls}`}>
+      <aside className="sidenav" aria-label={badge}>
+        <div className="sn-brand"><Logo href={home} /></div>
+        <div className="sn-portal">
+          <span className="badge"><Icon name={BADGE_ICON[portal.kind]} size={14} />{badge}</span>
+          <div className="scope">{scope}</div>
+          <div className="sub">{sub}</div>
+        </div>
+        <PortalNav links={links} />
+        <div className="sn-foot">
+          {person && <div className="sn-person">{person.name}<small>{person.role_title} · synthetic</small></div>}
           <SignOutButton />
         </div>
+      </aside>
+      <div className="shell-main">
+        <header className="shell-top">
+          <span className="where">{badge}<small>{scope}</small></span>
+          <ThemeToggle />
+        </header>
+        <main>{children}</main>
       </div>
-      <div className="pb-navrow"><PortalNav links={links} /></div>
-    </header>
+    </div>
   );
 }

@@ -29,7 +29,7 @@ export const QUEUE_LABEL: Record<string, string> = {
 export const TAG_STYLE: Record<string, { color: string; label: string; icon: string }> = {
   "ACT NOW": { color: "var(--st-critical)", label: "Act now", icon: "▲" },
   "VERIFY THEN ACT": { color: "var(--st-serious)", label: "Verify then act", icon: "◆" },
-  "DO NOT ASSUME SAFE": { color: "var(--st-warning)", label: "Do not assume safe", icon: "?" },
+  "DO NOT ASSUME SAFE": { color: "var(--st-warning)", label: "Do not assume safe", icon: "?" },   // indigo + hatch
   MONITOR: { color: "var(--st-good)", label: "Monitor", icon: "●" },
 };
 
@@ -43,10 +43,10 @@ export const STATUS_STYLE: Record<string, { label: string; long: string; icon: s
 };
 
 export const SEV_COLOR: Record<string, string> = {
-  CRITICAL: "var(--st-critical)",
-  HIGH: "var(--st-serious)",
-  WATCH: "var(--st-warning)",
-  NORMAL: "var(--st-good)",
+  CRITICAL: "var(--r-critical-fg)",
+  HIGH: "var(--r-high-fg)",
+  WATCH: "var(--r-watch-fg)",
+  NORMAL: "var(--r-normal-fg)",
 };
 
 export const DOMAIN_LABEL: Record<string, string> = {
@@ -56,9 +56,9 @@ export const DOMAIN_LABEL: Record<string, string> = {
 };
 
 export const CONF_COLOR: Record<string, string> = {
-  HIGH: "var(--st-good)",
-  MODERATE: "var(--st-warning)",
-  LOW: "var(--st-critical)",
+  HIGH: "var(--c-high-fg)",
+  MODERATE: "var(--c-mod-fg)",
+  LOW: "var(--q-dnas-fg)",
 };
 
 /** Map / sort metrics for the national view. `worse` = higher values need more attention. */

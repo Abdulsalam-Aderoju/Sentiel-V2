@@ -4,13 +4,13 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 const TAG_HEX: Record<string, string> = {
-  "ACT NOW": "#d03b3b",
-  "VERIFY THEN ACT": "#ec835a",
-  "DO NOT ASSUME SAFE": "#fab219",
-  MONITOR: "#0ca30c",
+  "ACT NOW": "#b91c1c",
+  "VERIFY THEN ACT": "#d97706",
+  "DO NOT ASSUME SAFE": "#4338ca",
+  MONITOR: "#0d9488",
 };
 // Sequential blue ramp for "facilities needing action or verification".
-const SEQ = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95"];
+const SEQ = ["#f1f5f9", "#e2e8f0", "#cbd5e1", "#94a3b8", "#64748b", "#475569"];   // neutral slate: queue-coloured dots stay readable on every step
 
 function bbox(fc: any): [number, number, number, number] {
   let [x0, y0, x1, y1] = [180, 90, -180, -90];
@@ -35,7 +35,7 @@ export default function LgaMap({ lgas, facilities, month, focusLga, stateCode, u
     const vals = lgas.features.map((f: any) => f.properties.needs_attention ?? 0);
     const max = Math.max(1, ...vals);
     const stops = SEQ.flatMap((c, i) => [Math.round((max * i) / (SEQ.length - 1)), c]);
-    const surface = dark ? "#1a1a19" : "#fcfcfb";
+    const surface = dark ? "#111a2e" : "#ffffff";
     const bounds = bbox(focusLga ? { features: lgas.features.filter((f: any) => f.properties.lga_id === focusLga) } : lgas);
     const map = new maplibregl.Map({
       container: ref.current,
@@ -57,7 +57,7 @@ export default function LgaMap({ lgas, facilities, month, focusLga, stateCode, u
             id: "fac", type: "circle", source: "fac",
             paint: {
               "circle-radius": focusLga ? 5 : 2.6,
-              "circle-color": ["match", ["get", "tag"], ...Object.entries(TAG_HEX).flat(), "#898781"] as any,
+              "circle-color": ["match", ["get", "tag"], ...Object.entries(TAG_HEX).flat(), "#64748b"] as any,
               "circle-stroke-color": surface,
               "circle-stroke-width": focusLga ? 1.5 : 0.6,
             },

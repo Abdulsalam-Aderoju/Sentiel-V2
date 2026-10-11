@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { dateLabel } from "@/lib/actions";
 import { int, pct } from "@/lib/api";
 
 /** Three national figures beside the queue: who is acting (simulated), how far people travel (real-derived),
@@ -16,7 +17,7 @@ export default function BeyondQueue({ actions, kpis }: { actions: any | null; kp
             <div><b className="num">{int(a.overdue)}</b><span>overdue</span></div>
             <div><b className="num">{int(a.escalated_to_state + a.escalated_to_national)}</b><span>escalated to state or national</span></div>
           </div>
-          <p className="note">Clock {new Date(actions.clock.sim_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
+          <p className="note">Clock {dateLabel(actions.clock.sim_date)}</p>
         </div>
       )}
       {kpis.pct_pop_beyond_threshold != null && (

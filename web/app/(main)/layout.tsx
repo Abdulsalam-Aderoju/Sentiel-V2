@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import PortalBar from "@/components/PortalBar";
+import PortalShell from "@/components/PortalBar";
 import { api } from "@/lib/api";
 import { persona, portal } from "@/lib/persona";
 
@@ -15,9 +15,6 @@ export default async function PortalLayout({ children }: { children: React.React
     lgaName = s.lgas.find((l: any) => l.lga_id === p.lga)?.lga;
   }
   return (
-    <>
-      <PortalBar portal={p} person={person} stateName={stateName} lgaName={lgaName} />
-      <main>{children}</main>
-    </>
+    <PortalShell portal={p} person={person} stateName={stateName} lgaName={lgaName}>{children}</PortalShell>
   );
 }
