@@ -25,8 +25,7 @@ Branch `feat/action-access-burden`. Last updated 11 Oct 2026. **All phases P0–
 
 ## Optional follow-ups
 
-1. `docker compose build web && docker compose up -d web` so the Docker web picks up the phone-width CSS fixes
-   (the dev server on 3001 already has them).
+1. Done: the Docker web on port 3000 was rebuilt with the phone-width fixes (rechecked, no overflow).
 2. A full Docker run with network to see `fetch-access` + `access` end to end in one pipeline (the first run's
    download worked; the second lost DNS mid-download).
 3. Owner decisions listed in `docs/report_action_layer.md` → "Needs owner review".
