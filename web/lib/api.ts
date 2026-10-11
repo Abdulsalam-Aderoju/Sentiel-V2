@@ -10,9 +10,10 @@ export async function api<T = any>(path: string, month?: string, params?: Record
 }
 
 /** Like api(), but returns null on 404 so pages can render notFound(). */
-export async function apiOrNull<T = any>(path: string, month?: string): Promise<T | null> {
+export async function apiOrNull<T = any>(path: string, month?: string, params?: Record<string, string | undefined>): Promise<T | null> {
   const url = new URL(path, API);
   if (month) url.searchParams.set("month", month);
+  for (const [k, v] of Object.entries(params ?? {})) if (v != null && v !== "") url.searchParams.set(k, v);
   const res = await fetch(url, { cache: "no-store" });
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`API ${res.status} on ${path}: ${await res.text()}`);

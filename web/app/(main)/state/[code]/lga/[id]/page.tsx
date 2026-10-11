@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import LgaMap from "@/components/LgaMap";
+import QueueBulk from "@/components/actions/QueueBulk";
 import MonthPicker from "@/components/MonthPicker";
 import { ConfBadge, QueueTag } from "@/components/Tags";
 import { DOMAIN_LABEL, api, apiOrNull, facilityHref, lgaHref, monthLabel, pct, stateHref } from "@/lib/api";
@@ -87,13 +88,15 @@ export default async function LgaQueues({ params, searchParams }: P) {
           )}
           {rows.length === 0 ? <div className="empty">No facilities in this queue.</div> : (
             <div style={{ overflowX: "auto" }}>
+              {tab !== "monitor" && <QueueBulk />}
               <table className="data">
                 <thead>
-                  <tr><th>#</th><th>Facility</th><th>Status</th><th>Evidence and next action</th></tr>
+                  <tr>{tab !== "monitor" && <th><span className="sr-only">Select</span></th>}<th>#</th><th>Facility</th><th>Status</th><th>Evidence and next action</th></tr>
                 </thead>
                 <tbody>
                   {rows.map((r) => (
                     <tr key={r.facility_id}>
+                      {tab !== "monitor" && <td><input type="checkbox" name="fac" value={r.facility_id} aria-label={`Select ${r.name}`} suppressHydrationWarning /></td>}
                       <td className="muted num">{r.rank_lga}</td>
                       <td style={{ minWidth: 180 }}>
                         <Link href={facilityHref(code, r.facility_id, month)}>{r.name}</Link>

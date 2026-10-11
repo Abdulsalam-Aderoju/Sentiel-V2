@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import PersonaSwitcher from "./actions/PersonaSwitcher";
 
 type St = { code: string; name: string; zone: string };
 
@@ -70,9 +71,12 @@ export default function TopBar({ states, zones }: { states: St[]; zones: string[
         </div>
         <Link href={`/national${q}`} className={path === "/national" ? "active" : ""}>National</Link>
         {current && <Link href={`/state/${current.code}${q}`} className={path === `/state/${current.code}` ? "active" : ""}>{current.name} overview</Link>}
+        {current && <Link href={`/state/${current.code}/actions`} className={path.startsWith(`/state/${current.code}/actions`) ? "active" : ""}>Action Centre</Link>}
+        <Link href="/me" className={path === "/me" ? "active" : ""}>My cases</Link>
         <span className="spacer" />
-        <Link href="/national/briefing" className="hide-sm">Briefing mode</Link>
+        <Link href="/national/briefing" className="hide-sm">Briefing</Link>
         <Link href="/about" className={path === "/about" ? "active" : ""}>Method &amp; data</Link>
+        <PersonaSwitcher />
       </nav>
     </header>
   );

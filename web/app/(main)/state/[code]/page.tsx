@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { QueueTrend } from "@/components/Charts";
 import LgaMap from "@/components/LgaMap";
 import MonthPicker from "@/components/MonthPicker";
+import StateTabs from "@/components/StateTabs";
 import { QueueTag, SimChip, StatusPill } from "@/components/Tags";
 import { DOMAIN_LABEL, TAG_STYLE, api, apiOrNull, facilityHref, int, lgaHref, monthLabel, pct } from "@/lib/api";
 
@@ -57,6 +58,8 @@ export default async function StateOverview({ params, searchParams }: P) {
           <Link className="btn" href={`/national?month=${month}&state=${code}`}>State brief</Link>
         </div>
       </div>
+
+      <StateTabs code={code} active="" month={month} />
 
       <div className="grid g-kpi" style={{ marginBottom: 16 }}>
         <div className="card kpi accent" style={{ ["--kpi-accent" as any]: TAG_STYLE["ACT NOW"].color }}>

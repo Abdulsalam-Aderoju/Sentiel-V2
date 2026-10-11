@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CommodityChart, ServiceChart } from "@/components/Charts";
 import MonthPicker from "@/components/MonthPicker";
+import LiveStatus from "@/components/actions/LiveStatus";
+import TakeAction from "@/components/actions/TakeAction";
 import { ConfBadge, QueueTag, SevBadge, SimChip } from "@/components/Tags";
 import { QUEUE_LABEL, api, apiOrNull, lgaHref, monthLabel, stateHref } from "@/lib/api";
 
@@ -23,7 +25,9 @@ export default async function FacilityExplanation({ params, searchParams }: P) {
   const month = m ?? meta.latest;
   const d = await apiOrNull(`/state/${code}/facility/${id}`, month);
   if (!d) notFound();
-  const [qd, cfg] = await Promise.all([api(`/state/${code}/quality/${id}`, month), api("/meta/settings")]);
+  const [qd, cfg, act] = await Promise.all([api(`/state/${code}/quality/${id}`, month), api("/meta/settings"),
+    apiOrNull(`/state/${code}/facility/${id}/live`)]);
+  const latest = act && act.live.analysis_month === month;
   const f = d.facility, s = d.status, ex = d.explanation;
   const reasons: string[] = ex.confidence_reasons ?? [];
   const checks = [...(qd.checks ?? [])].sort((a: any, b: any) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity]);
@@ -73,6 +77,13 @@ export default async function FacilityExplanation({ params, searchParams }: P) {
           ) : <p className="muted">All expected reports current, complete and coherent.</p>}
         </div>
       </div>
+
+      {act && latest && (
+        <div className="grid g-half" style={{ marginBottom: 16 }}>
+          <LiveStatus live={act.live} />
+          <TakeAction code={code} facilityId={id} data={act} />
+        </div>
+      )}
 
       <div className="card" style={{ marginBottom: 16 }}>
         <h2>Why flagged: evidence by domain</h2>
