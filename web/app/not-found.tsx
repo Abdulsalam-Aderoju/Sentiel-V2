@@ -8,8 +8,8 @@ export default function NotFound() {
         <h1 style={{ marginTop: 6 }}>That view is not in the demo</h1>
         <p className="secondary">The state, LGA or facility may not be covered. Twelve states are available, two per geopolitical zone.</p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 16 }}>
-          <Link className="btn primary" href="/national">National Command Centre</Link>
-          <Link className="btn" href="/">Choose a state</Link>
+          <Link className="btn primary" href="/signin">Choose a portal</Link>
+          <Link className="btn" href="/">Home</Link>
         </div>
       </div>
     </main>

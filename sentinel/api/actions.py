@@ -51,6 +51,31 @@ def state_people(code: str = CODE, role: str | None = None, lga_id: str | None =
     return {"state": state_info(code), "total": total, "people": rows, "synthetic": True}
 
 
+SIGNIN_ROLE = {"national": "nat_director_phc", "state": "st_dir_phc", "lga": "lga_phc_coord"}
+
+
+@router.get("/meta/signin", tags=["people"])
+def signin_person(role: str = Query(..., pattern="^(national|state|lga)$"), state: str | None = None, lga: str | None = None):
+    """Demo sign-in: the synthetic person who 'signs in' to a portal. National: the Director of PHC Systems
+    Development; a state board: that state's Director of PHC Services; an LGA: its PHC Coordinator.
+    There is no password; a pilot replaces this with real accounts."""
+    where, params = ["p.role_code = :r"], {"r": SIGNIN_ROLE[role]}
+    if role in ("state", "lga"):
+        if not state:
+            raise HTTPException(422, "state is required for a state board or LGA sign-in")
+        state_info(state)
+        where.append("p.state_code = :s"); params["s"] = state
+    if role == "lga":
+        if not lga:
+            raise HTTPException(422, "lga is required for an LGA sign-in")
+        where.append("p.lga_id = :l"); params["l"] = lga
+    row = one(f"""SELECT {PERSON_COLS} FROM dim_person p JOIN dim_role r USING (role_code)
+                  WHERE {' AND '.join(where)} ORDER BY p.person_id LIMIT 1""", **params)
+    if row is None:
+        raise HTTPException(404, "no one to sign in as for that choice")
+    return {"person": row, "portal": role, "synthetic": True}
+
+
 @router.get("/people/{person_id}", tags=["people"])
 def person(person_id: str):
     p = one(f"SELECT {PERSON_COLS} FROM dim_person p JOIN dim_role r USING (role_code) WHERE p.person_id = :p", p=person_id)

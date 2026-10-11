@@ -62,7 +62,6 @@ export default async function GapsPage({ params, searchParams }: P) {
       <div className="page-head">
         <div>
           <div className="crumbs">
-            <Link href={`/national?month=${month}`}>National</Link><span className="sep">/</span>
             <Link href={`/state/${code}?month=${month}`}>{d.state.name} State</Link><span className="sep">/</span><span>Behind the gaps</span>
           </div>
           <h1>{d.state.name}: what the gaps hide</h1>

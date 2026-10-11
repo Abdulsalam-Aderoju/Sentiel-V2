@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Logo } from "@/components/TopBar";
+import { Logo } from "@/components/Logo";
 import { ModelChip, RealChip, SimChip, StatusPill } from "@/components/Tags";
 import { DOMAIN_LABEL, METRICS, STATUS_STYLE, TAG_STYLE, int, monthLabel, pct } from "@/lib/api";
 import NationalMap from "./NationalMap";

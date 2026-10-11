@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { QueueTag, SimChip, StatusPill } from "@/components/Tags";
 import RequestResponse from "./RequestResponse";
-import { DOMAIN_LABEL, STATUS_STYLE, TAG_STYLE, int, lgaHref, monthLabel, pct, stateHref } from "@/lib/api";
+import { DOMAIN_LABEL, STATUS_STYLE, TAG_STYLE, int, monthLabel, pct } from "@/lib/api";
 
 const short = (m: string) => {
   const [y, mo] = m.split("-").map(Number);
@@ -81,7 +81,6 @@ export default function StateBrief({ s, month, onClose, onPrev, onNext, position
                 <div><span>Overdue</span><b>{int(s.overdue_cases)}</b><em>{pct(s.pct_cases_overdue)} of open</em></div>
                 <div><span>Escalated</span><b>{int(s.escalated_cases)}</b><em>{int(s.resolved_cases)} resolved</em></div>
               </div>
-              <p style={{ margin: "8px 0 0" }}><Link href={`/state/${s.state_code}/actions`}>Open the {s.state} Action Centre →</Link></p>
             </div>
           )}
           <RequestResponse s={s} />
@@ -120,7 +119,7 @@ export default function StateBrief({ s, month, onClose, onPrev, onNext, position
               <tbody>
                 {s.top_lgas.map((l: any) => (
                   <tr key={l.lga_id}>
-                    <td><Link href={lgaHref(s.state_code, l.lga_id, month)}>{l.lga}</Link><div className="muted" style={{ fontSize: 11.5 }}>{l.facilities} PHCs</div></td>
+                    <td><strong>{l.lga}</strong><div className="muted" style={{ fontSize: 11.5 }}>{l.facilities} PHCs</div></td>
                     <td className="n">{l.act_now}</td><td className="n">{l.verify_then_act}</td><td className="n">{l.verification}</td>
                   </tr>
                 ))}
@@ -143,11 +142,11 @@ export default function StateBrief({ s, month, onClose, onPrev, onNext, position
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <p className="note">State-level summary only. Facility detail, queues and evidence are in the state portal.</p>
+          <p className="note">State-level summary only. Clinic detail is visible to the state's own board, not at national level.</p>
         </div>
 
         <footer>
-          <Link className="btn primary" href={stateHref(s.state_code, month)}>Open {s.state} state portal <span aria-hidden>→</span></Link>
+          <Link className="btn primary" href="/national/responses">See all state responses <span aria-hidden>→</span></Link>
         </footer>
       </aside>
     </>

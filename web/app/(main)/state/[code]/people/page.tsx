@@ -33,7 +33,7 @@ export default async function People({ params, searchParams }: P) {
     <>
       <div className="page-head">
         <div>
-          <div className="crumbs"><Link href="/national">National</Link><span className="sep">/</span><Link href={`/state/${code}`}>{d.state.name} State</Link><span className="sep">/</span><span>People</span></div>
+          <div className="crumbs"><Link href={`/state/${code}`}>{d.state.name} State</Link><span className="sep">/</span><span>People</span></div>
           <h1>{d.state.name} directory</h1>
           <div className="secondary">{d.total.toLocaleString("en-GB")} people match. Every person here is <strong>synthetic</strong>: generated names and non-dialable contacts (SIM-… numbers, .invalid emails).</div>
         </div>

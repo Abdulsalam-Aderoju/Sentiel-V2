@@ -44,7 +44,6 @@ export default async function StateOverview({ params, searchParams }: P) {
       <div className="page-head">
         <div>
           <div className="crumbs">
-            <Link href={`/national?month=${month}`}>National</Link><span className="sep">/</span>
             <span>{st.name} State</span><span className="sep">·</span><span>{st.zone}</span>
           </div>
           <h1>{st.name}: where to act, where to verify</h1>
@@ -55,7 +54,6 @@ export default async function StateOverview({ params, searchParams }: P) {
         </div>
         <div className="actions">
           <MonthPicker months={meta.months} value={month} />
-          <Link className="btn" href={`/national?month=${month}&state=${code}`}>State brief</Link>
         </div>
       </div>
 

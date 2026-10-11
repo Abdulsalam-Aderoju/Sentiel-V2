@@ -436,11 +436,13 @@ def edit(message_id: str, body: EditBody):
 
 
 @router.get("/responses", tags=["messages"])
-def responses(state: str | None = None, parse_status: str | None = None, review_status: str | None = None,
-              limit: int = Query(100, le=1000)):
+def responses(state: str | None = None, lga_id: str | None = None, parse_status: str | None = None,
+              review_status: str | None = None, limit: int = Query(100, le=1000)):
     w, p = ["TRUE"], {"n": limit}
     if state:
         w.append("r.state_code = :s"); p["s"] = state
+    if lga_id:
+        w.append("c.lga_id = :lg"); p["lg"] = lga_id
     if parse_status:
         w.append("r.parse_status = ANY(:ps)"); p["ps"] = parse_status.split(",")
     if review_status:
@@ -702,6 +704,28 @@ def request_state_response(code: str, body: Actor):
             raise ActionError(f"an open state response case already exists for {code}")
         return c["case_id"]
     return case_detail(_tx(run))
+
+
+@router.get("/national/responses", tags=["cases"])
+def national_responses():
+    """State response requests (rule R10): each case with its owner, status, response lead and plan, plus the
+    states the system suggests a request for but where none is open. National sees the answer here."""
+    clk = _clock()
+    rows = q(f"""SELECT {CASE_COLS}, c.response_lead, c.response_plan, c.baseline_month,
+                        st.name AS state_name, st.zone, st.status AS state_status
+                 FROM case_file c LEFT JOIN dim_person op ON op.person_id = c.owner_person_id
+                 LEFT JOIN dim_person ep ON ep.person_id = c.escalated_to_person_id
+                 LEFT JOIN dim_facility f ON f.facility_id = c.facility_id
+                 LEFT JOIN mart_facility_live lv ON lv.facility_id = c.facility_id
+                 LEFT JOIN (SELECT state_code, state AS name, zone, status FROM mart_state_month
+                            WHERE analysis_month = (SELECT baseline_month FROM sim_clock)) st ON st.state_code = c.state_code
+                 WHERE c.level = 'state' ORDER BY c.opened_at DESC, c.case_id DESC""")
+    open_states = {r["state_code"] for r in rows if r["status"] not in ("resolved", "closed_no_action", "closed_duplicate")}
+    sugg = [r for r in q("""SELECT s.state_code, s.reason, m.state AS state_name, m.zone, m.status
+                            FROM action_suggestion s JOIN mart_state_month m ON m.state_code = s.state_code
+                            WHERE m.analysis_month = (SELECT baseline_month FROM sim_clock) ORDER BY m.state""")
+            if r["state_code"] not in open_states]
+    return {"clock": clk, "responses": rows, "suggested": sugg, "synthetic": True}
 
 
 # ---- simulated clock (demo only) -------------------------------------------------------------------------

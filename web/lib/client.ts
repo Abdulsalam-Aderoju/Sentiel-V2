@@ -54,3 +54,18 @@ export async function act<T = any>(path: string, body: any = {}): Promise<T> {
   if (!actor) throw new ApiError(422, "Choose who you are acting as (top bar) before taking an action.");
   return apiPost<T>(path, { actor_person_id: actor, ...body });
 }
+
+// ---- portal (which of the three demo portals you are signed in to) ----------------------------------
+export const PORTAL_COOKIE = "sentinel_portal";
+
+/** national | state.<code> | lga.<code>.<lga_id>; read by middleware to keep the three portals apart. */
+export function setPortal(value: string | null) {
+  document.cookie = value
+    ? `${PORTAL_COOKIE}=${encodeURIComponent(value)}; path=/; max-age=31536000; samesite=lax`
+    : `${PORTAL_COOKIE}=; path=/; max-age=0`;
+}
+
+export function signOut() {
+  setPortal(null);
+  setPersonaId(null);
+}

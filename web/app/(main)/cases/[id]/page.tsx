@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { QueueTag, SimChip } from "@/components/Tags";
 import CaseActions from "@/components/actions/CaseActions";
 import { PersonName, PriorityChip, StatusChip, SynChip } from "@/components/actions/Chips";
@@ -9,6 +9,7 @@ import LiveStatus from "@/components/actions/LiveStatus";
 import SimClock from "@/components/actions/SimClock";
 import { EVENT_LABEL, RULE_SHORT, dateLabel } from "@/lib/actions";
 import { DOMAIN_LABEL, apiOrNull } from "@/lib/api";
+import { portal, portalHome } from "@/lib/persona";
 
 type P = { params: Promise<{ id: string }> };
 
@@ -44,6 +45,13 @@ export default async function CasePage({ params }: P) {
   const d = await apiOrNull(`/cases/${id}`);
   if (!d) notFound();
   const c = d.case;
+  const pt = await portal();
+  // A portal sees only its own cases: national the state-level requests, a state board its state, an LGA its LGA.
+  if ((pt?.kind === "national" && c.level !== "state") || (pt?.kind === "state" && c.state_code !== pt.state)
+    || (pt?.kind === "lga" && (c.lga_id !== pt.lga || c.level === "state"))) redirect(portalHome(pt));
+  const back = pt?.kind === "national" ? { href: "/national/responses", label: "State responses" }
+    : pt?.kind === "lga" ? { href: `/state/${c.state_code}/lga/${pt.lga}/actions`, label: "Action Centre" }
+    : { href: `/state/${c.state_code}/actions`, label: "Action Centre" };
   const snap = c.evidence_snapshot ?? {};
   const steps = d.playbook.steps;
   const closed = ["resolved", "closed_no_action", "closed_duplicate"].includes(c.status);
@@ -55,10 +63,10 @@ export default async function CasePage({ params }: P) {
       <div className="page-head">
         <div>
           <div className="crumbs">
-            <Link href={`/state/${c.state_code}/actions`}>Action Centre</Link><span className="sep">/</span>
+            <Link href={back.href}>{back.label}</Link><span className="sep">/</span>
             <span>{c.level === "facility" ? c.lga : c.level === "lga" ? "LGA case" : "State case"}</span><span className="sep">/</span><span>{c.case_ref}</span>
           </div>
-          <h1>{c.case_ref} · <Link href={where}>{c.unit_name}</Link></h1>
+          <h1>{c.case_ref} · {pt?.kind === "national" ? c.unit_name : <Link href={where}>{c.unit_name}</Link>}</h1>
           <div className="case-meta">
             <PriorityChip p={c.priority} /> <StatusChip status={c.status} /> {snap.tag && <QueueTag tag={snap.tag} />}
             <span className={c.overdue ? "due overdue" : "due"}>{c.overdue ? "Overdue: due " : "Due "}{dateLabel(c.due_at)}</span>

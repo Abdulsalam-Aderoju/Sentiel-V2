@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import LgaMap from "@/components/LgaMap";
 import QueueBulk from "@/components/actions/QueueBulk";
+import { LgaCrumbs, LgaTabs } from "@/components/LgaNav";
 import MonthPicker from "@/components/MonthPicker";
 import { ConfBadge, QueueTag } from "@/components/Tags";
 import { DOMAIN_LABEL, api, apiOrNull, facilityHref, lgaHref, monthLabel, pct, stateHref } from "@/lib/api";
@@ -49,12 +50,8 @@ export default async function LgaQueues({ params, searchParams }: P) {
     <>
       <div className="page-head">
         <div>
-          <div className="crumbs">
-            <Link href={`/national?month=${month}`}>National</Link><span className="sep">/</span>
-            <Link href={stateHref(code, month)}>{st.name} State</Link><span className="sep">/</span>
-            <span>{l.lga} LGA · {monthLabel(month)}</span>
-          </div>
-          <h1>{l.lga} LGA queues</h1>
+          <LgaCrumbs code={code} stateName={st.name} lgaId={id} lgaName={l.lga} month={month} />
+          <h1>{l.lga} LGA: clinics needing attention</h1>
           <div className="secondary">
             {l.facilities} PHCs · reporting {pct(l.reporting_completeness)} complete, {pct(l.on_time_rate)} on time ·
             ranked #{l.lga_rank} of {d.lgas_in_state} LGAs in {st.name}
@@ -62,6 +59,8 @@ export default async function LgaQueues({ params, searchParams }: P) {
         </div>
         <MonthPicker months={meta.months} value={month} />
       </div>
+
+      <LgaTabs code={code} lgaId={id} active="" month={month} />
 
       <div className="grid g-kpi" style={{ marginBottom: 16 }}>
         <div className="card kpi"><div className="label">Act now</div><div className="value num">{l.act_now}</div></div>

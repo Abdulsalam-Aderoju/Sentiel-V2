@@ -26,7 +26,7 @@ export default async function National({ searchParams }: {
           <div className="crumbs"><span>National</span><span className="sep">/</span><span>{monthLabel(month, true)} analysis</span></div>
           <h1>National Command Centre</h1>
           <div className="secondary" style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            {summary.kpis.states} states across all six geopolitical zones · state-level summaries; open a state portal for facility detail
+            {summary.kpis.states} states across all six geopolitical zones · state-level summaries only, never individual clinics
             <SimChip />
           </div>
         </div>

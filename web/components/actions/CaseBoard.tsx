@@ -87,10 +87,12 @@ export default function CaseBoard({ cases, total, view, lgas, byStatus }: {
           <select aria-label="Priority" value={sp.get("priority") ?? ""} onChange={(e) => set("priority", e.target.value || null)}>
             <option value="">All priorities</option><option value="P1">P1 urgent</option><option value="P2">P2 high</option><option value="P3">P3 routine</option>
           </select>
-          <select aria-label="LGA" value={sp.get("lga_id") ?? ""} onChange={(e) => set("lga_id", e.target.value || null)}>
-            <option value="">All LGAs</option>
-            {lgas.map((l) => <option key={l.lga_id} value={l.lga_id}>{l.lga}</option>)}
-          </select>
+          {lgas.length > 0 && (
+            <select aria-label="LGA" value={sp.get("lga_id") ?? ""} onChange={(e) => set("lga_id", e.target.value || null)}>
+              <option value="">All LGAs</option>
+              {lgas.map((l) => <option key={l.lga_id} value={l.lga_id}>{l.lga}</option>)}
+            </select>
+          )}
           <select aria-label="Rule" value={sp.get("rule") ?? ""} onChange={(e) => set("rule", e.target.value || null)}>
             <option value="">All rules</option>
             {Object.entries(RULE_SHORT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}

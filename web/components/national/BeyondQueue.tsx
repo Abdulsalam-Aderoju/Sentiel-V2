@@ -16,7 +16,7 @@ export default function BeyondQueue({ actions, kpis }: { actions: any | null; kp
             <div><b className="num">{int(a.overdue)}</b><span>overdue</span></div>
             <div><b className="num">{int(a.escalated_to_state + a.escalated_to_national)}</b><span>escalated to state or national</span></div>
           </div>
-          <p className="note">Clock {new Date(actions.clock.sim_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} · open a state&apos;s Action Centre from its brief</p>
+          <p className="note">Clock {new Date(actions.clock.sim_date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</p>
         </div>
       )}
       {kpis.pct_pop_beyond_threshold != null && (

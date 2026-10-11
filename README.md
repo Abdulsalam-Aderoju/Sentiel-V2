@@ -42,25 +42,36 @@ Three layers sit on top of the queues. Each carries its data class on every scre
 | **Access** | People more than a 60-minute walk from a public PHC, by ward and LGA; isolated PHCs (next PHC > 60 min) ranked by people affected; candidate areas for outreach. Isolation raises case priority. | **Real-derived**: WorldPop 2026, MAP friction surfaces, GRID3 |
 | **Behind the gaps** | Malaria cases expected at PHCs whose report is missing, with 80% ranges, and the stock-out risk behind out-of-date NHLMIS reports, each validated against the simulator's truth. | **Modelled** |
 
-## Views
+## Views: three separate portals
 
-Every view has its own address and is one click from the landing page. The demo has no login; a pilot adds
-real authentication with state-scoped access.
+A public landing page explains the problem and the idea, then a demo sign-in sends you into one of three portals. Each
+shows only what that level needs, has its own colour, label and icon in the bar at the top, and cannot reach the others
+(the web app redirects any out-of-portal address back to your own home; the API enforces the same scopes per person).
+The demo has **no password**: you choose a level, then a place, and enter as a ready-made synthetic person. A pilot
+replaces this with real authentication and state-scoped access.
+
+| Portal | Who | What it shows | Home |
+|---|---|---|---|
+| **National** (blue) | Federal Ministry of Health, NPHCDA | State summaries only, never clinics: map, state cards, zone table, state briefs, state responses, briefing mode | `/national` |
+| **State board** (green) | A State PHC Board | One state and its LGAs: queues, Action Centre, access, behind the gaps, people, resupply; can open any of its LGAs | `/state/{code}` |
+| **LGA** (purple) | An LGA's PHC team | One LGA and its clinics: queues, its Action Centre, access, people, clinic pages | `/state/{code}/lga/{id}` |
 
 | URL | View |
 |---|---|
-| `/` | Role switcher: National Command Centre, or pick a state |
-| `/national` | National Command Centre: headline numbers, interactive Nigeria map (colour by % act now, % data verification, reporting completeness or % stale stock reports), state cards with search / zone filter / sort, zone comparison, and a state brief opened from the map or a card. Brief, metric and filters stay in the URL, e.g. `/national?state=kano&metric=pct_stale`. Also: who is acting, people beyond a 60-min walk, hidden malaria cases, and map metrics `pct_pop_beyond_threshold` and `pct_cases_overdue`; a national persona can request a state response from the brief. |
-| `/national/briefing` | Briefing mode: large-type slides for senior officials (arrow keys, printable) |
+| `/` | Landing page: the problem, how it works, the three portals, what is real and what is simulated |
+| `/signin` | Demo sign-in: level, then state, then LGA; shows who you will enter as |
+| `/national` | National Command Centre: headline numbers, who is acting, access and hidden-burden cards, interactive Nigeria map (six selectable metrics), state cards with search / zone filter / sort, zone comparison, state brief |
+| `/national/responses` | State responses: ask a state for a response plan (only way national reaches a state; never an LGA or clinic) and read its lead and plan |
+| `/national/briefing` | Briefing mode: nine large-type slides for senior officials (arrow keys, printable) |
 | `/state/{code}` | State overview: LGA ranking, Risk x Confidence, map, queue trend |
-| `/state/{code}/lga/{id}` | LGA action and verification queues |
-| `/state/{code}/facility/{id}` | Facility explanation: evidence by domain, why confidence is reduced, trends; live status, Take action, access panel |
-| `/state/{code}/actions` | **Action Centre**: case list / kanban with filters and bulk actions, approvals tray, simulated outbox and inbox, LGA performance, escalations, demo guide, simulated clock |
-| `/cases/{id}` | Case: playbook stepper, timeline, messages and replies, live status, resupply request, escalation ladder, people |
-| `/state/{code}/access` | Access: ward map (or travel-time raster), LGAs, isolated PHCs, hotspot wards, candidate areas |
-| `/state/{code}/gaps` | Behind the gaps: hidden cases with ranges, silent PHCs, stale stock at risk, validation |
-| `/state/{code}/people`, `/state/{code}/resupply`, `/me` | Synthetic directory; printable resupply requests; my cases (for the persona you act as) |
-| `/about` | Method, coverage, **validation lab**, data labels, access model, limitations |
+| `/state/{code}/actions` | **State Action Centre**: cases (list / kanban, filters, bulk actions), approvals, simulated outbox and inbox, LGA accountability, escalations, simulated clock |
+| `/state/{code}/access`, `/gaps`, `/people`, `/resupply` | Access; behind the gaps (hidden burden); synthetic directory; printable resupply requests |
+| `/state/{code}/lga/{id}` | LGA clinics: action and verification queues, map, bulk actions |
+| `/state/{code}/lga/{id}/actions`, `/access`, `/people` | **LGA Action Centre** (its cases, approvals, replies), the LGA's access to care, its people |
+| `/state/{code}/facility/{id}` | Clinic explanation: evidence by domain, why confidence is reduced, trends; live status, Take action, access panel |
+| `/cases/{id}` | Case: playbook stepper, timeline, messages and replies, live status, resupply request, escalation ladder (only the cases in your portal's scope) |
+| `/me` | My cases: cases owned by, or escalated to, the person you signed in as |
+| `/about` | Method, coverage, **validation lab**, data labels, access model, limitations (public) |
 
 ## Run it
 
@@ -98,15 +109,18 @@ One state only: `python -m sentinel all --state kano`. Step-1 coverage check aga
 `python -m sentinel fetch-grid3 --state <code>`.
 
 **Action layer, day to day:** `python -m sentinel actions reset` restores the clean start (clock 30 Oct 2026, 8,425
-cases, demo scenario seeded); `python -m sentinel actions tick --days 3` advances the simulated clock. In the app, choose
-who you are acting as in the top bar; the Action Centre's demo guide has a one-click "Act as" for the scripted LGA.
+cases, demo scenario seeded); `python -m sentinel actions tick --days 3` advances the simulated clock (or use the clock
+buttons in any Action Centre). The State Action Centre's demo guide has a one-click link to the LGA portal where the loop is played.
 
-**The 90-second demo loop** (Bauchi, Toro LGA, after a reset): act as the Toro LGA PHC Coordinator → open the
+**The 90-second demo loop** (Bauchi, Toro LGA, after a reset): sign in to the **LGA portal** for Toro → open the
 Verify-then-act case in the demo guide → approve the drafted SMS → advance the clock one day (the outbox shows it
 delivered) and another (the reply `ACT 12 RDT 0 FRIDGE 1` arrives; live status turns ACT NOW, field-verified) → the case
 moves to *resupply requested* with pre-filled ACT and RDT quantities → approve them → advance two more days: the scripted
-unacknowledged case escalates to the LGA PHC Coordinator, then to the State LMCU Coordinator → the Action Centre KPIs show it all.
-The browser run of this loop takes about 25 seconds.
+unacknowledged case escalates to the LGA PHC Coordinator, then to the State LMCU Coordinator. The browser run takes about 30 seconds.
+
+**The national-to-state loop:** sign in to the **National portal** → State responses → *Request response* for a suggested state
+→ switch portal to that **State board** → open the case under My cases, acknowledge it, save a response lead and submit a plan
+→ switch back to National: the lead and plan are on the State responses page.
 
 ## How it works
 

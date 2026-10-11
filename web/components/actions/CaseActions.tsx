@@ -83,7 +83,7 @@ export default function CaseActions({ data }: { data: any }) {
           {oic && (
             <div className="reply-as">
               <div className="eyebrow">Reply as the facility (demo)</div>
-              <p className="note" style={{ marginTop: 2 }}>Act as <strong>{oic.name}</strong> <SynChip /> (Officer-in-Charge) in the top bar, then type a reply as if by SMS. It is parsed and applied exactly like a simulated reply.</p>
+              <p className="note" style={{ marginTop: 2 }}>Type the reply the clinic&apos;s Officer-in-Charge, <strong>{oic.name}</strong> <SynChip />, would send by SMS. It is parsed and applied exactly like a simulated reply.</p>
               <div className="act-row">
                 <input type="text" value={reply} onChange={(e) => setReply(e.target.value)} placeholder="ACT 12 RDT 0 FRIDGE 1" aria-label="Reply text" suppressHydrationWarning />
                 <button className="btn sm" disabled={!reply || !!busy} onClick={() => run("rep", () => act(`/cases/${c.case_id}/reply`, { text: reply }), "Reply recorded")}>Send reply</button>

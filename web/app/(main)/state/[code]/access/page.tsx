@@ -44,7 +44,6 @@ export default async function AccessPage({ params }: P) {
       <div className="page-head">
         <div>
           <div className="crumbs">
-            <Link href="/national">National</Link><span className="sep">/</span>
             <Link href={`/state/${code}`}>{d.state.name} State</Link><span className="sep">/</span><span>Access</span>
           </div>
           <h1>{d.state.name}: where people travel furthest</h1>

@@ -1,14 +1,22 @@
-import { Suspense } from "react";
-import TopBar, { Logo } from "@/components/TopBar";
+import { redirect } from "next/navigation";
+import PortalBar from "@/components/PortalBar";
 import { api } from "@/lib/api";
+import { persona, portal } from "@/lib/persona";
 
-export default async function MainLayout({ children }: { children: React.ReactNode }) {
-  const meta = await api("/meta/states");
+/** Every portal page: a portal bar that names the level you are in. Middleware keeps the portals apart. */
+export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+  const p = await portal();
+  if (!p) redirect("/signin");
+  const [meta, person] = await Promise.all([api("/meta/states"), persona()]);
+  const stateName = "state" in p ? meta.states.find((s: any) => s.code === p.state)?.name : undefined;
+  let lgaName: string | undefined;
+  if (p.kind === "lga") {
+    const s = await api(`/state/${p.state}/summary`);
+    lgaName = s.lgas.find((l: any) => l.lga_id === p.lga)?.lga;
+  }
   return (
     <>
-      <Suspense fallback={<header className="topbar"><Logo /></header>}>
-        <TopBar states={meta.states} zones={meta.zones} />
-      </Suspense>
+      <PortalBar portal={p} person={person} stateName={stateName} lgaName={lgaName} />
       <main>{children}</main>
     </>
   );

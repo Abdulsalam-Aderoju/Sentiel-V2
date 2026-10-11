@@ -22,19 +22,19 @@ export default async function About() {
       <div className="card">
         <h2>Access in this demo, and in a pilot</h2>
         <p style={{ marginTop: 0 }}>
-          The demo has <strong>no login</strong>: every view has its own address (<code>/national</code>,{" "}
-          <code>/state/&#123;code&#125;</code>) so reviewers can reach any of them in one click.
+          The demo has <strong>three separate portals</strong>, each showing only what that level needs. You choose one on the sign-in page
+          and enter as a ready-made synthetic person; there is <strong>no password</strong>.
         </p>
-        <p>
-          The Action Centre lets you <strong>act as a synthetic person</strong> (top bar, &ldquo;Acting as&rdquo;): a national
-          officer, a state coordinator, an LGA officer or facility staff. The API enforces that person&apos;s scope, so an LGA
-          officer cannot act on another LGA&apos;s cases and facility staff can reply but never approve. Every person, phone
-          number (<code>SIM-…</code>) and email (<code>….invalid</code>) is invented; no message is ever sent.
-        </p>
+        <ul>
+          <li><strong>National portal:</strong> summaries of all 12 states, state responses and briefing mode. No clinic detail, and no way into a state&apos;s portal.</li>
+          <li><strong>State board portal:</strong> one state and its LGAs, including the Action Centre, access, hidden-burden analysis and resupply.</li>
+          <li><strong>LGA portal:</strong> one LGA, its clinics, its cases and its people.</li>
+        </ul>
         <p style={{ marginBottom: 0 }}>
           A pilot deployment would add <strong>real authentication with state-scoped access</strong>: a State PHC Board
           or LGA team signs in and sees only its own state and LGAs; federal users (FMoH, NPHCDA) see the national
-          roll-up and can open any state. The API would enforce the same scopes, not only the interface.
+          roll-up. The demo portals are kept apart by the web app, and the API already enforces the same scopes per person (a request outside
+          your scope is refused with a 403).
         </p>
       </div>
 

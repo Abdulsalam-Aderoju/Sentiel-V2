@@ -29,7 +29,7 @@ export default async function Resupply({ params, searchParams }: P) {
     <>
       <div className="page-head">
         <div>
-          <div className="crumbs no-print"><Link href="/national">National</Link><span className="sep">/</span><Link href={`/state/${code}`}>{d.state.name} State</Link><span className="sep">/</span><span>Resupply</span></div>
+          <div className="crumbs no-print"><Link href={`/state/${code}`}>{d.state.name} State</Link><span className="sep">/</span><span>Resupply</span></div>
           <h1>{d.state.name} resupply requests</h1>
           <div className="secondary">Pre-filled from NHLMIS quantity to order or recent consumption; each is approved by a person. As of {dateLabel(d.clock.sim_date)} (simulated clock). <SimChip /></div>
           <p className="print-only"><strong>DEMONSTRATION: synthetic requests, not real orders.</strong></p>

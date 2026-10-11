@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CommodityChart, ServiceChart } from "@/components/Charts";
 import MonthPicker from "@/components/MonthPicker";
 import AccessCard from "@/components/access/AccessCard";
 import LiveStatus from "@/components/actions/LiveStatus";
 import TakeAction from "@/components/actions/TakeAction";
 import { ConfBadge, QueueTag, SevBadge, SimChip } from "@/components/Tags";
+import { portal } from "@/lib/persona";
 import { QUEUE_LABEL, api, apiOrNull, lgaHref, monthLabel, stateHref } from "@/lib/api";
 
 const SEV_ORDER: Record<string, number> = { severe: 0, major: 1, minor: 2 };
@@ -30,6 +31,8 @@ export default async function FacilityExplanation({ params, searchParams }: P) {
     apiOrNull(`/state/${code}/facility/${id}/live`), apiOrNull(`/state/${code}/facility/${id}/access`)]);
   const latest = act && act.live.analysis_month === month;
   const f = d.facility, s = d.status, ex = d.explanation;
+  const pt = await portal();
+  if (pt?.kind === "lga" && f.lga_id !== pt.lga) redirect(`/state/${pt.state}/lga/${pt.lga}`);
   const reasons: string[] = ex.confidence_reasons ?? [];
   const checks = [...(qd.checks ?? [])].sort((a: any, b: any) => SEV_ORDER[a.severity] - SEV_ORDER[b.severity]);
 
@@ -38,8 +41,7 @@ export default async function FacilityExplanation({ params, searchParams }: P) {
       <div className="page-head">
         <div>
           <div className="crumbs">
-            <Link href={`/national?month=${month}`}>National</Link><span className="sep">/</span>
-            <Link href={stateHref(code, month)}>{d.state.name} State</Link><span className="sep">/</span>
+            {pt?.kind === "state" && <><Link href={stateHref(code, month)}>{d.state.name} State</Link><span className="sep">/</span></>}
             <Link href={lgaHref(code, f.lga_id, month)}>{f.lga} LGA</Link><span className="sep">/</span><span>{f.ward}</span>
           </div>
           <h1>{f.name}</h1>

@@ -73,6 +73,14 @@ validation against simulator truth. 404 when `python -m sentinel burden` has not
 
 `/national/summary` adds `hidden_malaria_cases` (+ `_lo`, `_hi`) to the KPIs and each zone; `/national/states` adds them per state.
 
+## Sign-in and national responses (separate portals)
+
+| Endpoint | Returns |
+|---|---|
+| `GET /meta/signin?role=national\|state\|lga&state=&lga=` | The synthetic person who signs in to that portal (`person`, `portal`). 422 when a state or LGA is missing, 404 when the LGA is not in that state. No password: a pilot replaces this with real authentication |
+| `GET /national/responses` | State-level response cases (rule R10) with owner, status, deadline, response lead and plan; `suggested` lists the states where a request is advised but none is open |
+| `GET /responses?lga_id=` | Replies, now filterable by LGA (through their case) for the LGA Action Centre |
+
 ## Meta
 
 | Endpoint | Returns |

@@ -1,9 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { PLAYBOOK_TITLE } from "@/lib/actions";
-import { getPersonaId, setPersonaId } from "@/lib/client";
 import { StatusChip } from "./Chips";
 
 const ROLE_OF: Record<string, string> = {
@@ -13,18 +10,10 @@ const ROLE_OF: Record<string, string> = {
   R01_act_now_commodity: "Nobody acts: escalates to the State LMCU Coordinator",
 };
 
-/** The curated demo scenario, so the stage loop is one click away. */
-export default function DemoGuide({ cases, coordinator }: { cases: any[]; coordinator: { person_id: string; name: string; lga: string } | null }) {
-  const router = useRouter();
-  const [acting, setActing] = useState(false);
-  useEffect(() => {
-    const read = () => setActing(!!coordinator && getPersonaId() === coordinator.person_id);
-    read();
-    window.addEventListener("persona-change", read);
-    return () => window.removeEventListener("persona-change", read);
-  }, [coordinator]);
+/** The curated demo scenario, so the stage loop is one click away. In the state portal it points to the LGA
+ *  portal where the loop is played; inside the LGA portal it simply lists the four scripted cases. */
+export default function DemoGuide({ cases, lgaPortal }: { cases: any[]; lgaPortal: { state: string; lga_id: string; lga: string } | null }) {
   if (!cases.length) return null;
-  const actAs = () => { if (coordinator) { setPersonaId(coordinator.person_id); router.refresh(); } };
   return (
     <div className="card demo-guide">
       <div className="card-head">
@@ -32,10 +21,10 @@ export default function DemoGuide({ cases, coordinator }: { cases: any[]; coordi
           <h2>Demo scenario · {cases[0].lga} LGA</h2>
           <p>Four scripted cases play out the same way after every reset. Approve the drafts, then advance the simulated clock.</p>
         </div>
-        {coordinator && (
-          <button className="btn primary sm" onClick={actAs} disabled={!!acting}>
-            {acting ? `Acting as ${coordinator.name}` : `Act as ${coordinator.name}, LGA PHC Coordinator`}
-          </button>
+        {lgaPortal && (
+          <Link className="btn primary sm" href={`/signin?role=lga&state=${lgaPortal.state}&lga=${lgaPortal.lga_id}`}>
+            Play it in the {lgaPortal.lga} LGA portal <span aria-hidden>→</span>
+          </Link>
         )}
       </div>
       <ol className="demo-steps">

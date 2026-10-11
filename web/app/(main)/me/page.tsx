@@ -16,13 +16,13 @@ export default async function MyCases() {
     return (
       <div className="card" style={{ maxWidth: 640, margin: "32px auto", textAlign: "center", padding: 28 }}>
         <div className="eyebrow">My cases</div>
-        <h1 style={{ marginTop: 6 }}>Choose who you are acting as</h1>
-        <p className="secondary">The demo has no login. Use <strong>Acting as</strong> in the top bar to pick a synthetic person: a national director, a state director, an LGA coordinator or a facility officer-in-charge. Their cases appear here.</p>
+        <h1 style={{ marginTop: 6 }}>Sign in first</h1>
+        <p className="secondary">Sign in to a portal to see the cases you own or that were escalated to you.</p>
       </div>
     );
   }
   const p = d.persona;
-  const home = p.state_code ? `/state/${p.state_code}/actions` : "/national";
+  const home = p.level === "lga" ? `/state/${p.state_code}/lga/${p.lga_id}/actions` : p.state_code ? `/state/${p.state_code}/actions` : "/national/responses";
   return (
     <>
       <div className="page-head">
@@ -33,7 +33,7 @@ export default async function MyCases() {
         </div>
         <div className="actions">
           <SimClock simDate={d.clock.sim_date} started={d.clock.started} compact />
-          <Link className="btn primary" href={home}>{p.state_code ? "Open my Action Centre" : "National Command Centre"}</Link>
+          <Link className="btn primary" href={home}>{p.state_code ? "Open my Action Centre" : "State responses"}</Link>
         </div>
       </div>
       <div className="card" style={{ padding: 0, overflowX: "auto" }}>
