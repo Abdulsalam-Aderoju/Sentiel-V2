@@ -2,14 +2,16 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Logo } from "@/components/TopBar";
-import { SimChip, StatusPill } from "@/components/Tags";
+import { ModelChip, RealChip, SimChip, StatusPill } from "@/components/Tags";
 import { DOMAIN_LABEL, METRICS, STATUS_STYLE, TAG_STYLE, int, monthLabel, pct } from "@/lib/api";
 import NationalMap from "./NationalMap";
 
 const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`);
 
 /** Presentation-ready national view: large type, one message per slide, arrow keys to move. */
-export default function Briefing({ summary, states, geo, initialSlide }: { summary: any; states: any[]; geo: any; initialSlide: number }) {
+export default function Briefing({ summary, states, geo, initialSlide, actions, access, gaps }: {
+  summary: any; states: any[]; geo: any; initialSlide: number; actions?: any; access?: any; gaps?: any;
+}) {
   const k = summary.kpis;
   const month = summary.month;
   const [metric, setMetric] = useState("pct_act_now");
@@ -20,6 +22,84 @@ export default function Briefing({ summary, states, geo, initialSlide }: { summa
   const top3 = byAct.slice(0, 3).map((s) => s.state);
   const gap3 = byVer.slice(0, 3).map((s) => s.state);
   const m = METRICS.find((x) => x.key === metric)!;
+
+
+  const extraSlides: { id: string; render: () => React.ReactNode }[] = [];
+  if (actions) {
+    const a = actions.kpis;
+    const sts = [...actions.states].sort((x: any, y: any) => (y.pct_overdue ?? 0) - (x.pct_overdue ?? 0) || y.open_cases - x.open_cases);
+    const ackPct = a.total_cases ? a.acknowledged / a.total_cases : 0;
+    extraSlides.push({
+      id: "acting", render: () => (
+        <>
+          <div className="kicker">Who is acting <SimChip text="Simulated action layer" /></div>
+          <h1>{int(a.open_cases)} cases are open with a named owner; {pct(ackPct)} have been acknowledged and {int(a.overdue)} are overdue.</h1>
+          <p className="lead">Every flagged PHC became a case with an owner, a playbook and a deadline. Unacknowledged cases climb the escalation ladder on their own; {int(a.escalated_to_state)} have reached a state officer and {int(a.escalated_to_national)} the national level.</p>
+          <div className="brief-rank">
+            {sts.map((s: any, i: number) => (
+              <div className="r" key={s.state_code}>
+                <span className="n">{i + 1}</span>
+                <span className="name">{s.state}<small>{int(s.open_cases)} open · {int(s.acknowledged)} acknowledged · {int(s.escalated)} escalated · share overdue →</small></span>
+                <span className="track"><i style={{ width: `${100 * (s.pct_overdue ?? 0)}%`, background: "var(--st-critical)" }} /></span>
+                <span className="v">{pct(s.pct_overdue)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ),
+    });
+  }
+  if (access) {
+    const n = access.national;
+    const sts = access.states;
+    extraSlides.push({
+      id: "access", render: () => (
+        <>
+          <div className="kicker">Where people travel furthest <RealChip /></div>
+          <h1>{(n.pop_beyond_main / 1e6).toFixed(1)} million people live more than an hour&apos;s walk from a public PHC, most of them in {list(sts.slice(0, 3).map((s: any) => s.state))}.</h1>
+          <p className="lead">In these places a stock-out cannot be absorbed by the next facility. {int(n.n_isolated)} PHCs are isolated: the next one is more than 60 minutes away on foot. Sentinel raises their priority.</p>
+          <div className="brief-rank">
+            {sts.map((s: any, i: number) => (
+              <div className="r" key={s.state_code}>
+                <span className="n">{i + 1}</span>
+                <span className="name">{s.state}<small>{(s.pop_beyond_main / 1e6).toFixed(2)} M people · {int(s.n_isolated)} isolated PHCs</small></span>
+                <span className="track"><i style={{ width: `${(100 * s.pct_beyond_main) / sts[0].pct_beyond_main}%`, background: "var(--seq-600)" }} /></span>
+                <span className="v">{pct(s.pct_beyond_main, 1)}</span>
+              </div>
+            ))}
+          </div>
+          <p className="lead" style={{ fontSize: 15 }}>WorldPop 2026 population, Malaria Atlas Project walking friction, GRID3 facilities. Facilities outside the 12 demo states are not counted, so border areas may read high.</p>
+        </>
+      ),
+    });
+  }
+  if (gaps?.national) {
+    const g = gaps.national;
+    const share = g.reported_malaria_cases ? g.hidden_malaria_cases / (g.reported_malaria_cases + g.hidden_malaria_cases) : null;
+    const v = Object.values(gaps.validation ?? {}) as any[];
+    const wape = v.length ? v.reduce((t, x) => t + x.facility_wape, 0) / v.length : null;
+    const cov = v.length ? v.reduce((t, x) => t + x.facility_coverage, 0) / v.length : null;
+    const sts = gaps.states;
+    extraSlides.push({
+      id: "gaps", render: () => (
+        <>
+          <div className="kicker">What the gaps hide <ModelChip /></div>
+          <h1>About {int(Math.round(g.hidden_malaria_cases / 1000) * 1000)} malaria cases this month sit behind {int(g.n_report_missing)} missing reports{share != null ? `, roughly ${pct(share)} of the estimated total` : ""}.</h1>
+          <p className="lead">Estimated from each silent PHC&apos;s own history (80% range {int(g.hidden_malaria_lo)}–{int(g.hidden_malaria_hi)}). Checked against the simulation&apos;s truth, facility estimates were within {pct(wape)} on average and the range held {pct(cov)} of the time.</p>
+          <div className="brief-rank">
+            {sts.map((s: any, i: number) => (
+              <div className="r" key={s.state_code}>
+                <span className="n">{i + 1}</span>
+                <span className="name">{s.state}<small>{int(s.n_report_missing)} PHCs silent · {int(s.n_stock_elevated)} stale stock reports at elevated risk</small></span>
+                <span className="track"><i style={{ width: `${(100 * s.hidden_malaria_cases) / sts[0].hidden_malaria_cases}%`, background: "var(--series-2)" }} /></span>
+                <span className="v">≈ {int(s.hidden_malaria_cases)}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ),
+    });
+  }
 
   const slides = [
     {
@@ -122,6 +202,7 @@ export default function Briefing({ summary, states, geo, initialSlide }: { summa
         </>
       ),
     },
+    ...extraSlides,
     {
       id: "ask", render: () => (
         <>

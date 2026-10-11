@@ -622,6 +622,34 @@ def actions_summary(code: str = CODE):
             "escalations": esc, "rules": rules, "synthetic": True}
 
 
+def actions_ready() -> bool:
+    return _has("case_file")
+
+
+def state_action_rates() -> dict[str, dict]:
+    """Per state, for the national map and brief: open cases, overdue share, escalations, acknowledged share."""
+    if not actions_ready():
+        return {}
+    rows = q(f"""SELECT c.state_code, count(*) FILTER (WHERE {OPEN}) AS open_cases,
+                        count(*) FILTER (WHERE {OPEN} AND c.due_at < (SELECT sim_date FROM sim_clock)) AS overdue_cases,
+                        count(*) FILTER (WHERE {OPEN} AND c.escalation_level > 0) AS escalated_cases,
+                        count(*) FILTER (WHERE c.acknowledged_at IS NOT NULL) AS acknowledged_cases,
+                        count(*) FILTER (WHERE c.status = 'resolved') AS resolved_cases, count(*) AS total_cases
+                 FROM case_file c GROUP BY c.state_code""")
+    sugg = {r["state_code"]: r["reason"] for r in q("SELECT state_code, reason FROM action_suggestion")}
+    sc = {r["state_code"]: r for r in q("""SELECT DISTINCT ON (state_code) state_code, case_id AS state_case_id, case_ref AS state_case_ref,
+                                                  status AS state_case_status FROM case_file WHERE level = 'state'
+                                           ORDER BY state_code, opened_at DESC, case_id DESC""")}
+    out = {}
+    for r in rows:
+        o = r["open_cases"] or 0
+        code = r.pop("state_code")
+        out[code] = {**r, "pct_cases_overdue": (r["overdue_cases"] / o) if o else 0.0,
+                     "pct_cases_acknowledged": (r["acknowledged_cases"] / r["total_cases"]) if r["total_cases"] else 0.0,
+                     "response_suggested": sugg.get(code), **{k: v for k, v in (sc.get(code) or {}).items() if k != "state_code"}}
+    return out
+
+
 @router.get("/national/actions/summary", tags=["cases"])
 def national_actions_summary():
     """State-level action KPIs (aggregates only) and escalations that reached state or national level."""

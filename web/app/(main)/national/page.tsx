@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import MonthPicker from "@/components/MonthPicker";
+import BeyondQueue from "@/components/national/BeyondQueue";
 import NationalCommand from "@/components/national/NationalCommand";
 import { SimChip } from "@/components/Tags";
-import { api, monthLabel } from "@/lib/api";
+import { api, apiOrNull, monthLabel } from "@/lib/api";
 
 export const metadata: Metadata = { title: "National Command Centre" };
 
@@ -15,7 +16,8 @@ export default async function National({ searchParams }: {
   const sp = await searchParams;
   const meta = await api("/meta/months");
   const month = sp.month ?? meta.latest;
-  const [summary, st, geo] = await Promise.all([api("/national/summary", month), api("/national/states", month), api("/national/geo")]);
+  const [summary, st, geo, actions] = await Promise.all([api("/national/summary", month), api("/national/states", month),
+    api("/national/geo"), apiOrNull("/national/actions/summary")]);
 
   return (
     <>
@@ -36,6 +38,7 @@ export default async function National({ searchParams }: {
           </Link>
         </div>
       </div>
+      <BeyondQueue actions={actions} kpis={summary.kpis} />
       <NationalCommand key={month} summary={summary} states={st.states} geo={geo}
         initial={{ metric: sp.metric, state: sp.state, zone: sp.zone, q: sp.q, sort: sp.sort }} />
     </>

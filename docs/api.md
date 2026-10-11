@@ -55,6 +55,11 @@ access marts are not loaded.
 adds `pct_pop_beyond_threshold`, `pop_beyond_threshold` to the KPIs and to each zone. `/state/{code}/cases?sort=impact`
 orders by priority, then isolated PHCs first, then catchment population.
 
+`/national/states?metric=pct_cases_overdue` maps the share of open cases past their due date (simulated action layer). Because it
+moves with the simulated clock, `/national/states` merges live action figures (`open_cases`, `overdue_cases`,
+`escalated_cases`, `pct_cases_acknowledged`, `response_suggested`, `state_case_*`) into every row and is served with
+`Cache-Control: no-store` once the action layer is loaded.
+
 ## Hidden burden (modelled; Workstream B)
 
 Expected cases at PHCs with a missing monthly report and implied stock where NHLMIS is stale, with 80% intervals and

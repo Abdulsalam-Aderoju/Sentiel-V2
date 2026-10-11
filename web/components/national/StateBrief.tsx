@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { QueueTag, SimChip, StatusPill } from "@/components/Tags";
+import RequestResponse from "./RequestResponse";
 import { DOMAIN_LABEL, STATUS_STYLE, TAG_STYLE, int, lgaHref, monthLabel, pct, stateHref } from "@/lib/api";
 
 const short = (m: string) => {
@@ -71,6 +72,19 @@ export default function StateBrief({ s, month, onClose, onPrev, onNext, position
             <div><span>Stale stock reports</span><b>{int(s.stale_commodity)}</b><em>{pct(s.pct_stale)} of PHCs</em></div>
             {s.pct_pop_beyond_threshold != null && <div><span>Beyond a 60-min walk</span><b>{pct(s.pct_pop_beyond_threshold, 1)}</b><em>{(s.pop_beyond_threshold / 1e6).toFixed(2)} M people · real-derived</em></div>}
           </div>
+
+          {s.open_cases != null && (
+            <div className="brief-sec">
+              <h3>Who is acting <small>simulated action layer</small></h3>
+              <div className="mini-kpis">
+                <div><span>Open cases</span><b>{int(s.open_cases)}</b><em>{pct(s.pct_cases_acknowledged)} acknowledged</em></div>
+                <div><span>Overdue</span><b>{int(s.overdue_cases)}</b><em>{pct(s.pct_cases_overdue)} of open</em></div>
+                <div><span>Escalated</span><b>{int(s.escalated_cases)}</b><em>{int(s.resolved_cases)} resolved</em></div>
+              </div>
+              <p style={{ margin: "8px 0 0" }}><Link href={`/state/${s.state_code}/actions`}>Open the {s.state} Action Centre →</Link></p>
+            </div>
+          )}
+          <RequestResponse s={s} />
 
           <div className="brief-sec">
             <h3>Risk × confidence <small>PHCs per quadrant</small></h3>

@@ -174,3 +174,13 @@
 .val-grid b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
 .val-grid span { font-size: 12px; color: var(--text-secondary); }
 .val-grid small { display: block; font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---- National: beyond the queue strip, state response ---- */
+.beyond { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.beyond-card .eyebrow { display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+.beyond-row { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; }
+.beyond-row > div { min-width: 90px; flex: 1; }
+.beyond-row b { display: block; font-size: 24px; }
+.beyond-row span { font-size: 12px; color: var(--text-secondary); }
+.sim-chip.sm, .real-chip.sm, .model-chip.sm { font-size: 10px; padding: 1px 6px; text-transform: none; letter-spacing: 0; }
+.request-box { border-left: 4px solid var(--brand); padding-left: 12px; }

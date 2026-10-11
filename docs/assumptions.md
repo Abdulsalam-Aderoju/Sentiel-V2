@@ -30,6 +30,7 @@
 | A25 | Simulated officers acknowledge open cases with probability 0.55 per day, scaled by responsiveness | **Simulator parameter**; approvals are never simulated | `simulation.ack_probability_per_day` |
 | A26 | The directory has 2 staff per PHC, 5 officers per LGA, 6 per state and 3 national roles; names are first name × surname from zone pools, phones `SIM-{ST}-{6 digits}`, emails on `.invalid` | **Design assumption**; no real office-holder is named | `config/name_pools.yaml`, `directory.py` |
 | A27 | Ground truth for simulated replies is the September closing stock minus daily demand × days since, plus delivered resupply | **Simulator parameter** (from the evaluation truth tables) | `simulate.truth_stock` |
+| A28 | An isolated PHC (next PHC beyond a 60-min walk) with at least 10,000 people in its catchment warrants a priority raise (R11) | **Design assumption**, about the top quarter of isolated catchments; it raises no priority at reset because every case it applies to already opens at P1. **NEEDS OWNER REVIEW** | `rules.R11_access_isolated` |
 
 ## Per-state simulator parameters (A13–A16)
 

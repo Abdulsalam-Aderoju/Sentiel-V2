@@ -44,7 +44,9 @@ METRICS = {
     "reporting_completeness": ("Reporting completeness", False),
     "pct_stale": ("% stale stock reports", True),
     "pct_pop_beyond_threshold": ("% people beyond a 60-min walk to a PHC", True),
+    "pct_cases_overdue": ("% open cases overdue (simulated action layer)", True),
 }
+LIVE_METRICS = {"pct_cases_overdue"}   # change with the simulated clock, so never cached
 
 
 def facility_state(facility_id: str) -> str:
@@ -156,11 +158,25 @@ def _national_states(m: str, metric: str) -> dict:
 @app.get("/national/states")
 def national_states(response: Response, month: str | None = MONTH,
                     metric: Literal["pct_act_now", "pct_verification", "reporting_completeness", "pct_stale",
-                                    "pct_pop_beyond_threshold"] = "pct_act_now"):
+                                    "pct_pop_beyond_threshold", "pct_cases_overdue"] = "pct_act_now"):
     """One row per covered state: counts, rates, status, a short trend and the top LGAs (the state brief).
     `value` and `metric_rank` follow the selected map metric."""
-    response.headers["Cache-Control"] = CACHE
-    return _national_states(resolve_month(month), metric)
+    m = resolve_month(month)
+    if metric not in LIVE_METRICS and not cases_api.actions_ready():
+        response.headers["Cache-Control"] = CACHE
+        return _national_states(m, metric)
+    # Action-layer figures move with the simulated clock: merge them into a copy of the cached rows.
+    base = _national_states(m, "pct_act_now" if metric in LIVE_METRICS else metric)
+    live = cases_api.state_action_rates()
+    rows = [{**r, **live.get(r["state_code"], {})} for r in base["states"]]
+    if metric in LIVE_METRICS:
+        for r in rows:
+            r["value"] = r.get(metric)
+        ranked = sorted(rows, key=lambda r: (r["value"] is None, -(r["value"] or 0)))
+        for i, r in enumerate(ranked, 1):
+            r["metric_rank"] = i
+    response.headers["Cache-Control"] = "no-store"
+    return {**base, "metric": metric, "metric_label": METRICS[metric][0], "higher_is_worse": METRICS[metric][1], "states": rows}
 
 
 @lru_cache
