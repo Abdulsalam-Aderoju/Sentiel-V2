@@ -18,11 +18,19 @@ services:
 
   # Runs the full pipeline for every state in settings.yaml (facility master ->
   # simulator -> engines, SENTINEL_WORKERS states in parallel), builds the national
-  # marts and loads the database (~20-25 min for 12 states). Exits when done; the
-  # API starts after it succeeds.
+  # marts, the hidden-burden estimates and (when the open rasters can be downloaded)
+  # the access marts, loads the database, then builds the synthetic directory and
+  # opens the action-layer cases with the demo scenario (~30 min for 12 states).
+  # Access is optional: without network it is skipped and the Access tab says so.
+  # Exits when done; the API starts after it succeeds.
   pipeline:
     build: .
-    command: sh -c "python -m sentinel all && python -m sentinel load-db"
+    command: >
+      sh -c "python -m sentinel all &&
+             python -m sentinel burden &&
+             (python -m sentinel fetch-access && python -m sentinel access || echo 'ACCESS STEP FAILED: see the error above; the Access tab will say it is not loaded') &&
+             python -m sentinel load-db &&
+             python -m sentinel actions load"
     environment:
       DATABASE_URL: postgresql+psycopg://sentinel:sentinel@db:5432/sentinel
       SENTINEL_WORKERS: "3"           # ~1.5 GB RAM per worker; lower it on small machines

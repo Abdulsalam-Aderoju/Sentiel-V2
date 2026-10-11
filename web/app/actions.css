@@ -184,3 +184,12 @@
 .beyond-row span { font-size: 12px; color: var(--text-secondary); }
 .sim-chip.sm, .real-chip.sm, .model-chip.sm { font-size: 10px; padding: 1px 6px; text-transform: none; letter-spacing: 0; }
 .request-box { border-left: 4px solid var(--brand); padding-left: 12px; }
+
+/* ---- Phone fixes found in the final pass ---- */
+form select, .filters select { max-width: 100%; }
+@media (max-width: 560px) {
+  .briefing .dots { display: none; }          /* the "6 / 9" counter stays; 9 dots do not fit at 390 px */
+  .briefing .controls { gap: 8px; }
+}
+.toolbar .left { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+.toolbar .left select { min-width: 0; }

@@ -230,7 +230,7 @@ rules:
     mode: modifier
     applies_to_groups: [verification]
     when: {all: [{field: implied_stock_label, op: eq, value: elevated_risk}]}
-    # elevated_risk = P(no ACT at month end) >= 0.5 from the implied-stock model; validated at ~2.6x the base
+    # elevated_risk = P(no ACT at month end) >= 0.5 from the implied-stock model; validated at 1.4-3.1x the base (Bauchi 2.6x)
     # stock-out rate, so a reason to look sooner, not proof of a stock-out (D63, NEEDS OWNER REVIEW).
     raise_priority: 1
     note: "Stock report out of date: elevated risk of no ACT (chance {act_p_out:.0%}); check first"
