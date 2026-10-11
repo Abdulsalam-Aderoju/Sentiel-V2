@@ -71,3 +71,13 @@ not cited.
 | A46 | People use their nearest PHC by travel time | Standard accessibility assumption; ignores cost, quality, opening hours and preference | Catchments described as geographic, not utilisation (D48) |
 | A47 | WorldPop 2026 projected counts represent current population | WorldPop R2025A projection; differs from NPC projections in some states (Ogun, FCT higher) | D41 |
 | A48 | 30 km buffer, 1 km cells, candidates 10 km apart | **Design assumption**; sensitivity of the friction resampling rule is reported in D43 | `access.*` |
+
+
+## Hidden burden (Workstream B)
+
+| ID | Assumption | Basis | Handling |
+|---|---|---|---|
+| A60 | A silent PHC's caseload follows its own seasonal history, shifted by the same month-specific factor as PHCs that did report | **Design assumption**; validated (facility error 15–16%) in the simulation, where silence is partly driven by strain. A real system should check whether silent PHCs differ systematically | D61 |
+| A61 | Facility forecast errors are independent when summed to state totals | **Design assumption**; totals held their 80% range in 58–92% of months, so it is optimistic for some states | D62 |
+| A62 | A stale-report PHC's stock follows the state's average NHLMIS net flow since its last report | **Design assumption**; PHCs whose LMIS reporting stopped may also have lost deliveries | D63 |
+| A63 | 80% intervals, 6 months minimum history, 12-month error window, labels at P ≥ 0.5 / 0.3 | **Design assumption**, chosen for readability; all in `settings.yaml` | `burden.*` |

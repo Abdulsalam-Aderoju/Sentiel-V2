@@ -11,6 +11,7 @@
     python -m sentinel all           facilities -> simulate -> pipeline per state, then national marts
     python -m sentinel fetch-access  download WorldPop, MAP friction and GRID3 wards (not committed)
     python -m sentinel access        access and travel-burden marts per state, then national roll-up
+    python -m sentinel burden        hidden burden behind reporting gaps (modelled), validated against truth
 
   Action layer (needs the database loaded; people, messages and replies are SYNTHETIC):
     python -m sentinel actions load       build + load the synthetic directory and the simulated truth, then reset
@@ -71,7 +72,7 @@ def main(argv: list[str] | None = None) -> None:
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("command", nargs="?", default="all",
                    choices=["coverage", "fetch-grid3", "facilities", "simulate", "pipeline", "national", "load-db", "all",
-                            "fetch-access", "access", "actions"])
+                            "fetch-access", "access", "burden", "actions"])
     p.add_argument("subcommand", nargs="?", help="for `actions`: load | reset | seed-demo | tick")
     p.add_argument("--days", type=int, default=1, help="for `actions tick`")
     p.add_argument("--state", action="append", help="state code (repeatable); default: all configured states")
@@ -107,6 +108,15 @@ def main(argv: list[str] | None = None) -> None:
             load_access_only()
         except Exception as e:  # noqa: BLE001 - the marts are still on disk; load-db picks them up later
             print(f"  access marts not loaded into the database ({type(e).__name__}); run load-db later")
+    elif a.command == "burden":
+        from .burden.compute import build_national as burden_national, run as burden_run
+        _parallel(burden_run, [(c,) for c in codes], a.workers)
+        burden_national()
+        try:
+            from .db import load_burden_only
+            load_burden_only()
+        except Exception as e:  # noqa: BLE001 - the marts are still on disk; load-db picks them up later
+            print(f"  burden marts not loaded into the database ({type(e).__name__}); run load-db later")
     elif a.command == "national":
         from .national import build
         build()

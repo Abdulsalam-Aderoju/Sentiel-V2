@@ -101,3 +101,31 @@ export function CommodityChart({ rows, minMonths, eopMonths }: { rows: any[]; mi
     </ResponsiveContainer>
   );
 }
+
+/** Reported malaria cases and the estimated cases behind missing reports, stacked per month. The estimate wears a
+ *  hatched fill (texture, not just colour) and the tooltip gives its interval. */
+export function HiddenTrend({ data, months = 24 }: { data: any[]; months?: number }) {
+  const rows = data.slice(-months).map((t) => ({ ...t, reported: t.reported_malaria_cases ?? null, hidden: t.hidden_malaria_cases ?? null }));
+  const n = (v: any) => (v == null ? "n/a" : Math.round(v).toLocaleString("en-GB"));
+  return (
+    <ResponsiveContainer width="100%" height={240}>
+      <BarChart data={rows} margin={{ top: 8, right: 8, left: 4, bottom: 0 }} barCategoryGap={3}>
+        <defs>
+          <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+            <rect width="6" height="6" fill="var(--series-2)" fillOpacity={0.35} />
+            <line x1="0" y1="0" x2="0" y2="6" stroke="var(--series-2)" strokeWidth="2.5" />
+          </pattern>
+        </defs>
+        <CartesianGrid {...grid} />
+        <XAxis dataKey="analysis_month" tickFormatter={short} {...axis} interval={2} />
+        <YAxis {...axis} tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}k` : v)} />
+        <Tooltip {...tip} labelFormatter={short}
+          formatter={(v: any, name: any, item: any) => name === "Hidden (estimated)"
+            ? [`${n(v)} (${n(item.payload.hidden_malaria_lo)}–${n(item.payload.hidden_malaria_hi)})`, name] : [n(v), name]} />
+        <Legend {...legend} />
+        <Bar isAnimationActive={false} dataKey="reported" name="Reported" stackId="m" fill="var(--series-1)" stroke="var(--surface-1)" strokeWidth={1} />
+        <Bar isAnimationActive={false} dataKey="hidden" name="Hidden (estimated)" stackId="m" fill="url(#hatch)" stroke="var(--series-2)" strokeWidth={1} radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}

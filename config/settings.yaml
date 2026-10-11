@@ -179,3 +179,22 @@ access:
     friction_bbox: [2.0, 3.8, 15.2, 14.3]     # lon_min, lat_min, lon_max, lat_max (Nigeria + buffer)
     wards_layer: NGA_Ward_Boundaries
 # ==== end access ================================================================
+
+# ==== Hidden burden (Workstream B) =================================================
+# Modelled from each facility's own reported history; validated against the simulator's
+# truth tables (truth is used only to score, never to estimate). Decisions D60+, assumptions A60+.
+burden:
+  data_class: modelled
+  indicators: [confirmed_malaria, opd]   # estimated for PHCs whose monthly report is missing
+  headline_indicator: confirmed_malaria
+  interval: 0.80                 # central interval from the empirical error spread (DESIGN)
+  min_history_months: 6          # fewer reported months in the window -> no estimate
+  error_window_months: 12        # months of reported data used to learn the error spread
+  # Implied stock for PHCs whose NHLMIS report is stale: last physical stock plus the typical net flow
+  # (receipts - consumption, in months of AMC) over the elapsed periods; spread grows with sqrt(periods).
+  stock_groups: {ACT: [ACT_AL_ADULT, ACT_AL_CHILD], RDT: [RDT_MAL]}
+  label_group: ACT               # implied_stock_label is set from this group
+  # Labels from P(stock <= 0 at month end). Validated as a relative signal, not a prediction (D63).
+  label_thresholds: {elevated: 0.50, watch: 0.30}
+  validation_months: 12          # the last N analysis months are scored against truth
+# ==== end burden ================================================================

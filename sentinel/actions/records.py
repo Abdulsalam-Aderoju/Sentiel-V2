@@ -53,7 +53,7 @@ def facility_records(conn, month: str, facility_ids: list[str] | None = None) ->
                              FROM mart_access_facility WHERE access_computed""")
         df = df.merge(acc, on="facility_id", how="left")
     if _exists(conn, "mart_hidden_burden_facility"):
-        hb = _read(conn, """SELECT facility_id, implied_stock_label FROM mart_hidden_burden_facility
+        hb = _read(conn, """SELECT facility_id, implied_stock_label, act_p_out FROM mart_hidden_burden_facility
                             WHERE analysis_month = :m""", m=month)
         df = df.merge(hb, on="facility_id", how="left")
     return df

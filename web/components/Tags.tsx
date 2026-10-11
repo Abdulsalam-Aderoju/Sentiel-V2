@@ -48,3 +48,7 @@ export function SimChip({ text = "Simulated data" }: { text?: string }) {
 export function RealChip({ text = "Real-derived data" }: { text?: string }) {
   return <span className="real-chip" title="Derived from real open data (WorldPop, MAP, GRID3); not simulated"><span aria-hidden>◆</span>{text}</span>;
 }
+
+export function ModelChip({ text = "Modelled estimate" }: { text?: string }) {
+  return <span className="model-chip" title="Estimated from each PHC's own history and validated against simulator truth; the reporting data are simulated"><span aria-hidden>≈</span>{text}</span>;
+}

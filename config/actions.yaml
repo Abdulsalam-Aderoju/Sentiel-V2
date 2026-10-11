@@ -225,13 +225,15 @@ rules:
     # Thresholds: isolated = next PHC beyond the 60-min walking threshold (access.main_threshold_minutes);
     # 10,000 people is DESIGN (A28): about the top quarter of isolated catchments.
   - id: R12_burden_exhausted
-    description: "Do-not-assume-safe facility whose implied stock is likely exhausted: raise priority one level"
+    description: "Do-not-assume-safe facility whose implied ACT stock is at elevated risk of running out: raise priority one level"
     level: facility
     mode: modifier
     applies_to_groups: [verification]
-    when: {all: [{field: implied_stock_label, op: eq, value: likely_exhausted}]}
+    when: {all: [{field: implied_stock_label, op: eq, value: elevated_risk}]}
+    # elevated_risk = P(no ACT at month end) >= 0.5 from the implied-stock model; validated at ~2.6x the base
+    # stock-out rate, so a reason to look sooner, not proof of a stock-out (D63, NEEDS OWNER REVIEW).
     raise_priority: 1
-    note: "Hidden burden: implied ACT stock likely exhausted if not resupplied"
+    note: "Stock report out of date: elevated risk of no ACT (chance {act_p_out:.0%}); check first"
 
 dedupe: {key: [unit_id, playbook], cooldown_days: 14}   # no second open case; no reopen within cooldown unless priority rises
 

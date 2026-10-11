@@ -133,3 +133,15 @@ Per state, in `data/states/{code}/access/`; national roll-ups in `data/national/
 
 Rules: exactly at a threshold counts as within (D47). Medians are quantised by the 1 km grid (one orthogonal step
 is 12 min walking at 5 km/h), so many medians read 12.0. Logs: `data/states/{code}/logs/access.json`.
+
+
+## Hidden burden marts (Workstream B, modelled)
+
+Built by `python -m sentinel burden` (after `pipeline`); per state in `data/states/{code}/burden/`, roll-ups in `data/national/`.
+
+| Table | Grain | Columns |
+|---|---|---|
+| `mart_hidden_burden_facility` | facility × month, rows with a missing report or a stale NHLMIS report | `report_missing`; `est_/lo_/hi_/var_{confirmed_malaria,opd}` (null when history is too short); `nhlmis_stale`; per stock group `act_`/`rdt_`: `last_stock`, `amc`, `last_period_end`, `months_since`, `implied`, `implied_lo`, `implied_hi`, `p_out`, `label` (elevated_risk / watch / no_signal / unknown); `implied_stock_label` (= ACT label); `lga_id`, `lga`, `state_code`, `data_class` = modelled |
+| `mart_hidden_burden_lga` | LGA × month | `n_report_missing`, `n_estimated`, `hidden_malaria_cases`/`_lo`/`_hi`/`_var`, `hidden_opd`/…, `n_stale_stock`, `n_stock_elevated`, `n_stock_watch` |
+| `mart_hidden_burden_state` / `_zone` / `_national` | state / zone / all × month | as LGA, plus `reported_malaria_cases`; zone and national also `n_states` |
+| `burden_validation` (JSON per state) | state | facility WAPE, MAPE, median APE, interval coverage, bias; state-total MAPE and coverage; stock base rate, outcome rate by label, lift, recall, interval coverage |

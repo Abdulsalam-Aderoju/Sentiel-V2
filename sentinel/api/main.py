@@ -17,6 +17,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 from ..config import mapping, settings, states
 from . import access as access_api
 from . import actions as actions_api
+from . import burden as burden_api
 from . import cases as cases_api
 from .common import months, one, q, resolve_month, state_info
 
@@ -27,6 +28,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "P
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.include_router(access_api.router)
 app.include_router(actions_api.router)
+app.include_router(burden_api.router)
 app.include_router(cases_api.router)
 
 MONTH = Query(None, pattern=r"^\d{4}-\d{2}$", description="Analysis month YYYY-MM; defaults to the latest")
@@ -105,6 +107,12 @@ def _national_summary(m: str) -> dict:
         za = {z["zone"]: z for z in access_api.q("SELECT zone, pct_beyond_main, pop_beyond_main FROM mart_access_zone")}
         for z in zones:
             z["pct_pop_beyond_threshold"] = za.get(z["zone"], {}).get("pct_beyond_main")
+    hb = burden_api.national_kpis(m)
+    if hb:
+        nat = {**nat, **hb}
+        zb = {z["zone"]: z for z in q("SELECT zone, hidden_malaria_cases FROM mart_hidden_burden_zone WHERE analysis_month = :m", m=m)}
+        for z in zones:
+            z["hidden_malaria_cases"] = zb.get(z["zone"], {}).get("hidden_malaria_cases")
     return {"month": m, "banner": BANNER, "kpis": nat, "zones": zones, "trend": trend,
             "metrics": {k: {"label": v[0], "higher_is_worse": v[1]} for k, v in METRICS.items()}}
 
@@ -130,8 +138,10 @@ def _national_states(m: str, metric: str) -> dict:
     worse = METRICS[metric][1]
     order = {st["code"]: i for i, st in enumerate(states())}
     acc = access_api.state_metric_rows()
+    hb = burden_api.state_rows(m)
     for r in rows:
         r.update(acc.get(r["state_code"], {"pct_pop_beyond_threshold": None}))
+        r.update({k: v for k, v in hb.get(r["state_code"], {}).items() if k != "state_code"})
         r["value"] = r[metric]
         r["trend"] = [t for t in tr if t["state_code"] == r["state_code"]]
         r["top_lgas"] = [t for t in top if t["state_code"] == r["state_code"]]

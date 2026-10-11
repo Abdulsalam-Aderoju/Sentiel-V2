@@ -55,6 +55,19 @@ access marts are not loaded.
 adds `pct_pop_beyond_threshold`, `pop_beyond_threshold` to the KPIs and to each zone. `/state/{code}/cases?sort=impact`
 orders by priority, then isolated PHCs first, then catchment population.
 
+## Hidden burden (modelled; Workstream B)
+
+Expected cases at PHCs with a missing monthly report and implied stock where NHLMIS is stale, with 80% intervals and
+validation against simulator truth. 404 when `python -m sentinel burden` has not been run.
+
+| Endpoint | Returns |
+|---|---|
+| `GET /state/{code}/gaps?month=` | Summary (hidden malaria cases and range, PHCs missing, stale stock counts by label), 36-month trend with reported cases, LGAs, the 30 silent PHCs with most expected cases, the 30 stale-report PHCs with highest stock-out chance, validation |
+| `GET /state/{code}/facility/{id}/gaps?month=` | One PHC's estimate (null when it reported and NHLMIS is current) |
+| `GET /national/gaps?month=` | National trend, zones, states and per-state validation summary |
+
+`/national/summary` adds `hidden_malaria_cases` (+ `_lo`, `_hi`) to the KPIs and each zone; `/national/states` adds them per state.
+
 ## Meta
 
 | Endpoint | Returns |

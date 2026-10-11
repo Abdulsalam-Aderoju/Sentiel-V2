@@ -187,6 +187,55 @@ def load_access(conn) -> bool:
     return True
 
 
+BURDEN_STATE_TABLES = ["mart_hidden_burden_facility", "mart_hidden_burden_lga"]
+BURDEN_NATIONAL_TABLES = ["mart_hidden_burden_state", "mart_hidden_burden_zone", "mart_hidden_burden_national"]
+BURDEN_LABELS = [
+    ("mart_hidden_burden_facility", "modelled", "Expected cases at PHCs with a missing report, and implied stock where NHLMIS is stale"),
+    ("mart_hidden_burden_lga", "modelled", "Hidden cases and stock-risk counts per LGA"),
+    ("mart_hidden_burden_state", "modelled", "Hidden cases per state with intervals"),
+    ("mart_hidden_burden_zone", "modelled", "Hidden cases per zone (sum of states)"),
+    ("mart_hidden_burden_national", "modelled", "Hidden cases across the 12 demo states (sum of states)"),
+    ("burden_validation", "derived", "Accuracy of the hidden-burden estimates against simulator truth"),
+]
+
+
+def burden_available() -> bool:
+    return (NATIONAL_DIR / "mart_hidden_burden_national.parquet").exists()
+
+
+def load_burden(conn) -> bool:
+    """Load the hidden-burden marts if `python -m sentinel burden` has produced them."""
+    if not burden_available():
+        print("  burden marts not built; skipped (python -m sentinel burden)")
+        return False
+    for table in BURDEN_STATE_TABLES:
+        files = [StatePaths(st["code"]).root / "burden" / f"{table}.parquet" for st in states()]
+        df = pd.concat([pd.read_parquet(f) for f in files if f.exists()], ignore_index=True)
+        copy_df(conn, _prepare(df), table)
+        print(f"  {table:<28} {len(df):>10,} rows")
+    for table in BURDEN_NATIONAL_TABLES:
+        df = pd.read_parquet(NATIONAL_DIR / f"{table}.parquet")
+        copy_df(conn, _prepare(df), table)
+        print(f"  {table:<28} {len(df):>10,} rows")
+    conn.execute(text("DROP TABLE IF EXISTS burden_validation"))
+    conn.execute(text("CREATE TABLE burden_validation (state_code text PRIMARY KEY, result jsonb)"))
+    vals = json.loads((NATIONAL_DIR / "burden_validation.json").read_text(encoding="utf-8"))
+    for code, v in vals.items():
+        conn.execute(text("INSERT INTO burden_validation VALUES (:c, CAST(:v AS jsonb))"), {"c": code, "v": json.dumps(v)})
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_hb_fac ON mart_hidden_burden_facility (facility_id, analysis_month)"))
+    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_hb_state ON mart_hidden_burden_facility (state_code, analysis_month)"))
+    conn.execute(text("DELETE FROM meta_data_labels WHERE table_name = ANY(:t)"), {"t": [r[0] for r in BURDEN_LABELS]})
+    for r in BURDEN_LABELS:
+        conn.execute(text("INSERT INTO meta_data_labels (table_name, data_class, description) VALUES (:a, :b, :c)"),
+                     dict(zip("abc", r)))
+    return True
+
+
+def load_burden_only() -> None:
+    with engine().begin() as conn:
+        load_burden(conn)
+
+
 def load_access_only() -> None:
     with engine().begin() as conn:
         load_access(conn)
@@ -245,6 +294,7 @@ def load() -> None:
 
         copy_df(conn, pd.DataFrame(DATA_LABELS, columns=["table_name", "data_class", "description"]), "meta_data_labels")
         load_access(conn)
+        load_burden(conn)
         post_load(conn)
         chk = conn.execute(text("SELECT state_code, coord_status, inside_own_lga, count(*) FROM v_facility_lga_check "
                                 "GROUP BY 1, 2, 3 ORDER BY 1, 2, 3")).fetchall()
